@@ -171,9 +171,51 @@ details.settings[open]>summary .chev{transform:rotate(90deg)}
 footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--muted);font-size:12px;text-align:center}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:11px 18px;border-radius:10px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:.25s;box-shadow:var(--shadow-lg);z-index:50;max-width:90vw}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.helpbtn{margin-left:8px;width:28px;height:28px;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.24);color:#fff;font-weight:800;font-size:15px;cursor:pointer;display:grid;place-items:center;flex:0 0 auto}
+.helpbtn:hover{background:rgba(255,255,255,.24)}
+.tour-ov{position:fixed;inset:0;background:rgba(11,33,27,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
+.tour-ov.show{display:flex}
+.tour{background:#fff;border-radius:18px;max-width:470px;width:100%;box-shadow:var(--shadow-lg);overflow:hidden}
+.tour .th{background:linear-gradient(135deg,#0B2F5E,#114B8F);color:#fff;padding:20px 24px;border-bottom:3px solid var(--gold)}
+.tour .th h3{margin:0;font-size:19px;font-weight:800;letter-spacing:-.01em}
+.tour .th p{margin:4px 0 0;color:#CFE1F6;font-size:13px}
+.tour .tb{padding:18px 24px 6px}
+.tour .ts{display:flex;gap:12px;margin-bottom:14px}
+.tour .ts .n{flex:0 0 auto;width:26px;height:26px;border-radius:8px;background:var(--green-l);color:var(--green-d);font-weight:800;font-size:13px;display:grid;place-items:center}
+.tour .ts .tx{font-size:13.5px;color:var(--body);line-height:1.5}
+.tour .ts .tx b{color:var(--ink)}
+.tour .tf{padding:8px 24px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .spin{width:15px;height:15px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;display:inline-block;animation:sp .7s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
 .hidecanvas{position:absolute;left:-99999px;top:0}
+/* ===== DHL-branded pre-notification coversheet (rendered via html2canvas) ===== */
+#cs{width:816px;background:#fff;color:#2b2b2b;font-family:'Helvetica Neue',Arial,sans-serif}
+#cs .band{background:#FFCC00;padding:18px 34px;display:flex;align-items:center;justify-content:space-between}
+#cs .band .ttl h1{font-size:24px;font-weight:800;letter-spacing:.3px;color:#D40511}
+#cs .band .ttl .sub{font-size:13px;font-weight:700;color:#7a5c00;margin-top:3px;letter-spacing:.3px}
+#cs .dhl{display:flex;align-items:center;gap:8px}
+#cs .dhl .word{font-family:Arial,sans-serif;font-style:italic;font-weight:800;font-size:44px;color:#D40511;letter-spacing:-1px;line-height:1}
+#cs .dhl .slashes{display:flex;flex-direction:column;gap:5px;justify-content:center}
+#cs .dhl .slashes i{display:block;height:5px;background:#D40511;transform:skewX(-18deg)}
+#cs .dhl .slashes i:nth-child(1){width:30px}
+#cs .dhl .slashes i:nth-child(2){width:38px}
+#cs .dhl .slashes i:nth-child(3){width:30px}
+#cs .redline{height:4px;background:#D40511}
+#cs .note{padding:10px 34px;font-size:12px;color:#555;border-bottom:1px solid #eceff1}
+#cs .note b{color:#2b2b2b}
+#cs .sect{padding:16px 34px 4px}
+#cs .sect .lbl{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#D40511;margin-bottom:9px}
+#cs .grid{display:grid;grid-template-columns:1fr 1fr;border:1px solid #dfe4e8;border-radius:6px;overflow:hidden}
+#cs .cell{border-right:1px solid #eceff1;border-bottom:1px solid #eceff1;padding:9px 14px;min-height:46px}
+#cs .cell:nth-child(2n){border-right:0}
+#cs .cell .k{font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:#8a939b}
+#cs .cell .v{font-size:14.5px;font-weight:600;color:#1b1f23;margin-top:3px}
+#cs .cell .v.big{font-size:18px;font-weight:800;letter-spacing:.3px}
+#cs .cbx{display:inline-block;width:15px;height:15px;border:2px solid #8a939b;border-radius:3px;text-align:center;line-height:12px;font-size:12px;font-weight:900;color:#D40511;vertical-align:-2px;margin-right:4px}
+#cs .cbx.on{border-color:#D40511;background:#FFF3D6}
+#cs .foot{margin:18px 34px 18px;padding:14px;background:#FFF7D6;border:1px solid #F2E4A0;border-radius:6px;font-size:12.5px;color:#5a5136;line-height:1.5}
+#cs .foot b{color:#2b2b2b}
+#cs .stamp{margin:0 34px 22px;border-top:1px solid #eceff1;padding-top:10px;font-size:10.5px;color:#9aa2a9;display:flex;justify-content:space-between}
 @media(max-width:820px){.stats{grid-template-columns:repeat(2,1fr)}}
 @media print{
   header.hero,.drop,.trailerbar,.actionbar,.steps,details.settings,#docsSection,#dropZone,.badge-secure,footer .noprint{display:none!important}
@@ -197,6 +239,7 @@ footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--muted);f
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       Runs in your browser
     </div>
+    <button class="helpbtn" id="helpBtn" title="How it works (30-second walkthrough)">?</button>
   </div>
 </header>
 
@@ -251,6 +294,11 @@ footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--muted);f
         <span class="sub">Helps read the ID from text if the barcode won't scan.</span>
       </div>
       <div class="fld">
+        <label for="trailerInput">Trailer # (optional)</label>
+        <input id="trailerInput" placeholder="e.g. 53-1042"/>
+        <span class="sub">Added to every email &amp; coversheet, if entered.</span>
+      </div>
+      <div class="fld">
         <label for="expectedInput">Expected shipment count (optional)</label>
         <input id="expectedInput" type="number" min="0" placeholder="e.g. 12"/>
         <span class="sub">Cross-checked against what's found.</span>
@@ -259,10 +307,10 @@ footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--muted);f
     <div class="actionbar">
       <button class="btn btn-primary" id="scanBtn" disabled>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2M3 12h18"/></svg>
-        Scan &amp; split
+        Scan &amp; build emails
       </button>
       <button class="btn btn-ghost btn-sm" id="resetBtn">Start over</button>
-      <span class="sub" id="dropMeta" style="color:var(--muted);font-size:12.5px"></span>
+      <span class="sub" id="dropMeta" style="color:var(--muted);font-size:12.5px">Reads the barcodes, splits the trailer, and builds the emails. If anything needs a look, it pauses for you to review.</span>
     </div>
   </div>
 
@@ -293,13 +341,23 @@ footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--muted);f
         </div>
         <div class="fld" style="grid-column:1/-1">
           <label>Email body template</label>
-          <textarea id="bodyTmpl" rows="4">Attached is the paperwork for a shipment crossing into {PORT} on {DATE} at approximately {TIME}.  If you could please process.</textarea>
-          <span class="sub">Placeholders: {PORT}, {DATE}, {TIME}, {BARCODE}. Your signature is added below it.</span>
+          <textarea id="bodyTmpl" rows="12">Please find attached the {COVER}customs documents.
+
+&#8226; PAPS / Barcode (SCN): {BARCODE}
+&#8226; Port of Entry: {PORT}{ACE}
+&#8226; BOL Number: {BOL}
+&#8226; Estimated Port Arrival Day: {DATE}
+&#8226; Estimated Port Arrival Time: {TIME}
+&#8226; Pieces: {PIECES}
+&#8226; Weight: {WEIGHT}
+&#8226; Trailer #: {TRAILER}
+
+Please confirm receipt and advise when the shipment has been accepted and released for border crossing.</textarea>
+          <span class="sub">Placeholders: {BARCODE}, {PORT}, {ACE}, {BOL}, {DATE}, {TIME}, {PIECES}, {WEIGHT}, {TRAILER}, {BROKER}, {COVER}. Empty bullet lines are dropped automatically; your signature is added below.</span>
         </div>
         <div class="fld" style="grid-column:1/-1">
           <label>Signature block</label>
-          <textarea id="sigBlock" rows="4">Team Leader
-CPC Logistics Canada LTD.
+          <textarea id="sigBlock" rows="4">CPC Logistics Canada LTD.
 Grimsby, ON.</textarea>
         </div>
       </div>
@@ -312,7 +370,7 @@ Grimsby, ON.</textarea>
           <span class="sub">Left = darker output. 256 = automatic.</span>
         </div>
       </div>
-      <div class="note warn" style="margin-top:14px"><span class="nb warn">Coversheet fields</span>The coversheet auto-fills: <b>PAPS/barcode #, port of entry (with ACE code), est. crossing date &amp; time, customs broker (DHL), shipper/exporter, consignee/importer, carrier, PO number(s), pieces, weight, page count</b>. Turn it on above if you want it prepended to each shipment.</div>
+      <div class="note warn" style="margin-top:14px"><span class="nb warn">DHL coversheet</span>Turn on <b>Prepend DHL coversheet</b> to add a <b>DHL-branded pre-notification form</b> (yellow/red) to the front of each shipment — auto-filled with PAPS/barcode, BOL, port + ACE code, est. arrival date/time, pieces, weight, trailer #, PO numbers, shipper, consignee and broker. It's a summary cover page in DHL's colours.</div>
     </div>
   </details>
 
@@ -378,8 +436,21 @@ Grimsby, ON.</textarea>
   </div>
 </footer>
 
+<div class="tour-ov" id="tourOv">
+  <div class="tour">
+    <div class="th"><h3>The 30-second version</h3><p>Deere → DHL PAPS pre-alerts, one trailer at a time.</p></div>
+    <div class="tb">
+      <div class="ts"><div class="n">1</div><div class="tx">Scan the whole trailer to <b>one PDF</b> and drop it on the page (or click to choose it).</div></div>
+      <div class="ts"><div class="n">2</div><div class="tx">Pick <b>your name</b> and the <b>crossing date</b> — it defaults to tomorrow. Your settings are remembered next time.</div></div>
+      <div class="ts"><div class="n">3</div><div class="tx">Click <b>Scan &amp; build emails</b>. It reads the barcodes, splits the trailer, and builds one DHL email per shipment. If anything looks off, it pauses so you can check.</div></div>
+      <div class="ts"><div class="n">4</div><div class="tx">Click <b>Download each as .eml</b>, select them all in your Downloads folder and press <b>Enter</b> — Outlook opens them ready to send. Glance, send, tick off.</div></div>
+    </div>
+    <div class="tf"><span class="sub" style="font-size:11.5px;color:var(--muted)">Reopen anytime with the “?” up top.</span><button class="btn btn-primary" id="tourClose">Got it — let's go</button></div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 <div id="scratch" class="hidecanvas" aria-hidden="true"></div>
+<div id="coverRender" class="hidecanvas" aria-hidden="true"></div>
 
 <!-- CDN libraries -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -387,6 +458,7 @@ Grimsby, ON.</textarea>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <script>
 "use strict";
@@ -455,12 +527,38 @@ function findDuplicateBarcodes(docs){
   return dups;
 }
 function buildSubject(barcode, port){ return (barcode||"UNKNOWN") + " - " + (port||"").trim(); }
+function normalizeTime(t){
+  if(!t) return "";
+  t=String(t).trim().toLowerCase();
+  if(t==="noon") return "12:00 PM";
+  if(t==="midnight") return "12:00 AM";
+  var m=t.match(/^(\d{1,2})(?::(\d{2}))?\s*(a|p|am|pm)?\.?$/);
+  if(!m) return String(t).trim();
+  var h=+m[1], min=m[2]||"00", ap=m[3];
+  if(ap){ ap = ap.charAt(0)==="p"?"PM":"AM"; } else { ap = h>=12?"PM":"AM"; }
+  var hh=h%12; if(hh===0) hh=12;
+  return hh+":"+min+" "+ap;
+}
 function fillBody(tmpl, ctx){
-  return String(tmpl||"")
+  var s = String(tmpl||"")
+    .replace(/\{COVER\}/g, ctx.cover||"")
+    .replace(/\{BARCODE\}/g, ctx.barcode||"")
     .replace(/\{PORT\}/g, ctx.port||"")
+    .replace(/\{ACE\}/g, ctx.ace ? (" (ACE "+ctx.ace+")") : "")
+    .replace(/\{BOL\}/g, ctx.bol||"")
     .replace(/\{DATE\}/g, ctx.date||"")
     .replace(/\{TIME\}/g, ctx.time||"")
-    .replace(/\{BARCODE\}/g, ctx.barcode||"");
+    .replace(/\{PIECES\}/g, ctx.pieces||"")
+    .replace(/\{WEIGHT\}/g, ctx.weight||"")
+    .replace(/\{TRAILER\}/g, ctx.trailer||"")
+    .replace(/\{BROKER\}/g, ctx.broker||"");
+  return dropEmptyBullets(s);
+}
+// remove bullet lines whose value is blank, e.g. "• Trailer #: " with nothing after the colon
+function dropEmptyBullets(text){
+  return String(text||"").split("\n").filter(function(ln){
+    return !/^\s*[•\-\*]\s*[^:]+:\s*$/.test(ln);
+  }).join("\n");
 }
 // ACE port codes (CBP) for the ports we clear at
 var PORT_ACE = {"Port Huron":"3803","Buffalo":"0901","Detroit":"3801","Portal":"3401"};
@@ -524,7 +622,7 @@ function humanSize(b){ if(b<1024)return b+" B"; if(b<1048576)return (b/1024).toF
 /* Expose for node test harness */
 if(typeof module!=="undefined" && module.exports){
   module.exports={normalizeBarcode,looksLikeId,extractIdFromText,splitPages,findDuplicateBarcodes,
-    buildSubject,fillBody,fmtCrossDate,buildEml,sanitizeFilename,csvCell,buildCsv,humanSize,base64ChunkWrap};
+    buildSubject,fillBody,fmtCrossDate,normalizeTime,dropEmptyBullets,buildEml,sanitizeFilename,csvCell,buildCsv,humanSize,base64ChunkWrap};
 }
 
 /* ============================================================
@@ -588,7 +686,7 @@ fi.addEventListener("change",function(){if(fi.files[0]) takeFile(fi.files[0]);})
 
 function takeFile(f){
   clearErr();
-  if(f.type!=="application/pdf" && !/\.pdf$/i.test(f.name)){ showErr("Please drop a PDF — that's what the scanner produces."); return; }
+  if(f.type!=="application/pdf" && !/\.pdf$/i.test(f.name)){ showErr("That wasn't a PDF. Scan the trailer to a single PDF, then drag it onto the page."); return; }
   state.fileName=f.name;
   var suggested=guessPort(f.name);
   if(suggested){ $("#portInput").value=suggested; updatePortHint(); }
@@ -600,7 +698,7 @@ function takeFile(f){
     $("#fileChips").appendChild(chip);
     $("#trailerBar").classList.add("show");
     $("#scanBtn").disabled=false;
-    $("#dropMeta").textContent = libReady()?"":"Loading libraries… if this stays, check your connection.";
+    $("#dropMeta").textContent = libReady()?"":"Getting the page ready…";
   };
   r.readAsArrayBuffer(f);
 }
@@ -777,9 +875,8 @@ $("#scanBtn").addEventListener("click",runScan);
 
 async function runScan(){
   clearErr();
-  if(!state.pdfData){ showErr("Drop a trailer PDF first."); return; }
-  if(typeof pdfjsLib==="undefined"){ showErr("The PDF engine hasn't loaded yet — check the internet connection and try again."); return; }
-  if(typeof ZXing==="undefined"){ showErr("The barcode reader hasn't loaded yet — check the connection and try again."); return; }
+  if(!state.pdfData){ showErr("Drop the trailer's scanned PDF onto the page first, then click Scan."); return; }
+  if(typeof pdfjsLib==="undefined" || typeof ZXing==="undefined"){ showErr("The page is still starting up — it loads a few tools the first time you open it. Wait about 10 seconds and click again. If it keeps happening, your internet may be blocked — refresh the page."); return; }
   $("#scanBtn").disabled=true;
   setStep(2); progress(true); state.pages=[]; state.docs=[]; state.built=false;
   $("#docsSection").classList.remove("show"); $("#verifySection").classList.remove("show");
@@ -837,8 +934,17 @@ async function runScan(){
     $("#docsSection").classList.add("show");
     $("#docsSection").scrollIntoView({behavior:"smooth",block:"start"});
     toast(state.docs.length+" shipment"+(state.docs.length===1?"":"s")+" detected across "+total+" pages");
+    $("#scanBtn").disabled=false;
+    // Happy path: if every shipment scanned cleanly (barcode, no orphans, no OCR) and the count matches,
+    // go straight on to build the emails — one click does it all.
+    var barcoded=state.docs.filter(function(d){return d.barcode&&!d.orphan;}).length;
+    var expected=parseInt($("#expectedInput").value,10);
+    var clean = state.docs.length>0 && state.docs.every(function(d){return d.barcode&&!d.orphan&&d.detection!=="ocr";})
+                && (isNaN(expected)||expected<=0||expected===barcoded);
+    if(clean){ await runBuild(); }
+    else { toast("Some shipments need a quick check below — fix them, then Build."); }
   }catch(err){
-    console.error(err); progress(false); showErr("Couldn't process that PDF: "+(err&&err.message?err.message:err));
+    console.error(err); progress(false); showErr("Something went wrong reading that scan. Re-scan the trailer as one PDF and drop it in again. If it keeps failing, the PDF may be damaged. (Details: "+(err&&err.message?err.message:err)+")");
     $("#scanBtn").disabled=false;
   }
 }
@@ -1050,20 +1156,71 @@ function parseDocFields(d){
   var text=d.pageOrder.map(function(pi){return state.pages[pi].textHint||"";}).join("\n");
   function grab(re){ var m=text.match(re); return m?m[1].trim().replace(/\s+/g," "):""; }
   var pos=(text.match(/\b55\d{8}\b/g)||[]).join(", ");
-  var pieces=grab(/(\d+)\s*pcs/i)|| (function(){var m=text.match(/(\d{2,4})\s*PC\b/);return m?m[1]:"";})();
-  var wt=grab(/(\d+)\s*lbs/i);
+  // pieces: prefer an explicit total ("271 pcs"), else sum every "<n> PC" line quantity
+  var pieces=grab(/(\d+)\s*pcs\b/i);
+  if(!pieces){
+    var pcs=text.match(/(\d+)\s*PC\b/g);
+    if(pcs){ var sum=0; pcs.forEach(function(x){ sum+=parseInt(x,10)||0; }); if(sum) pieces=String(sum); }
+  }
+  // weight: largest lbs figure = gross
+  var lbs=(text.match(/(\d[\d,]*)\s*lbs\b/gi)||[]).map(function(x){return parseInt(x.replace(/[^\d]/g,""),10)||0;});
+  var wt=lbs.length?String(Math.max.apply(null,lbs)):"";
+  // BOL / house bill
+  var bol=grab(/B[o0]l\s*No\.?:?\s*([A-Za-z0-9\-]+)/i)||grab(/House\s*bill[^\d]*(\d{5,})/i);
   var port=d.port||$("#portInput").value.trim();
+  var trailer=$("#trailerInput")?$("#trailerInput").value.trim():"";
   return {
     barcode:d.barcode||"",
     port:port, ace:PORT_ACE[port]||"",
-    time:$("#timeInput").value.trim(),
-    date:fmtCrossDate($("#dateInput").value),
-    broker:"DHL",
+    time:normalizeTime($("#timeInput").value.trim()),
+    dateISO:$("#dateInput").value||"",
+    broker:"DHL", bol:bol, trailer:trailer,
     shipper:grab(/Exporter\/Supplier\s*([A-Za-z0-9 .,\-]+Inc\.?)/i)||"Exo-s Inc.",
     consignee:grab(/(John Deere[^\n]*)/i)||"John Deere Horicon",
-    carrier:grab(/(DOHRN TRANSFER|DOHRN)/i)||"",
-    pos:pos, pieces:pieces, weight:wt, pageCount:d.pageOrder.length
+    carrier:grab(/(DOHRN TRANSFER|DOHRN)/i)||"CPC Logistics Canada Ltd.",
+    pos:pos, pieces:pieces, weight:wt?(wt+" lbs"):"", pageCount:d.pageOrder.length
   };
+}
+// Build the DHL coversheet DOM (also used to render the guide example)
+function coversheetMarkup(f){
+  function cell(k,v,big){ return '<div class="cell"><div class="k">'+k+'</div><div class="v'+(big?' big':'')+'">'+(v||'—')+'</div></div>'; }
+  function yn(k,yes){ return '<div class="cell"><div class="k">'+k+'</div><div class="v"><span class="cbx '+(yes?'on':'')+'">'+(yes?'&#10003;':'')+'</span> '+(yes?'YES':'NO')+'</div></div>'; }
+  return ''+
+  '<div class="band"><div class="ttl"><h1>PRE-ARRIVAL NOTIFICATION</h1><div class="sub">DHL GLOBAL FORWARDING · PAPS · U.S.-BOUND · JOHN DEERE</div></div>'+
+  '<div class="dhl"><span class="word">DHL</span><span class="slashes"><i></i><i></i><i></i></span></div></div>'+
+  '<div class="redline"></div>'+
+  '<div class="note">Submit one shipment per e-mail to <b>mi_paps_prealert@dhl.com</b>. Cleared one shipment at a time under the PAPS program.</div>'+
+  '<div class="sect"><div class="lbl">Filer &amp; program</div><div class="grid">'+
+    cell('Customs broker',f.broker,false)+cell('Carrier code (SCAC)','DEER',true)+
+    yn('ACE eManifest',true)+yn('BRASS',false)+
+  '</div></div>'+
+  '<div class="sect"><div class="lbl">Shipment</div><div class="grid">'+
+    cell('PAPS / Barcode (SCN)',f.barcode,true)+cell('House bill of lading #',f.bol)+
+    cell('Shipper / Exporter',f.shipper)+cell('Consignee / Importer',f.consignee)+
+    cell('Carrier',f.carrier)+cell('Trailer #',f.trailer)+
+  '</div></div>'+
+  '<div class="sect"><div class="lbl">Port &amp; ETA</div><div class="grid">'+
+    cell('Port of entry',f.port,true)+cell('ACE port code',f.ace,true)+
+    cell('Est. arrival date',f.dateISO)+cell('Est. arrival time',f.time)+
+  '</div></div>'+
+  '<div class="sect"><div class="lbl">Summary</div><div class="grid">'+
+    cell('Pieces',f.pieces,true)+cell('Weight',f.weight,true)+
+    cell('Attached pages',String(f.pageCount||''))+cell('Prepared by',f.prepared||'CPC Dispatch')+
+    '<div class="cell" style="grid-column:1/-1;border-right:0"><div class="k">PO number(s)</div><div class="v">'+(f.pos||'—')+'</div></div>'+
+  '</div></div>'+
+  '<div class="sect"><div class="lbl">Carrier contact</div><div class="grid">'+
+    cell('Grimsby Fleet (24/7)','905-309-1600',false)+cell('E-mail / fax','mi_paps_prealert@dhl.com',false)+
+  '</div></div>'+
+  '<div class="foot"><b>Please confirm receipt and advise when the shipment has been accepted and released for border crossing.</b><br>Auto-generated by the CPC Deere / DHL pre-alert tool — the commercial invoice &amp; customs documents follow this cover page.</div>'+
+  '<div class="stamp"><span>CPC Logistics Canada Ltd. · Deere / DHL PAPS pre-alert</span><span>'+(f.prepared?('Prepared by: '+f.prepared):'')+'</span></div>';
+}
+async function renderCoversheetCanvas(f){
+  var host=document.getElementById("coverRender");
+  host.innerHTML='<div id="cs">'+coversheetMarkup(f)+'</div>';
+  var node=document.getElementById("cs");
+  var canvas=await html2canvas(node,{scale:2,backgroundColor:"#ffffff",logging:false,useCORS:true});
+  host.innerHTML="";
+  return canvas;
 }
 
 /* ---------- build PDF per doc ---------- */
@@ -1071,9 +1228,13 @@ async function buildDocPdf(d,opts){
   var jsPDF=window.jspdf.jsPDF;
   var pdf=new jsPDF({unit:"pt",format:"letter",orientation:"portrait"});
   var first=true;
-  // optional coversheet
-  if(opts.coversheet){
-    drawCoversheet(pdf,parseDocFields(d));
+  // optional DHL-branded pre-notification coversheet (rendered via html2canvas)
+  if(opts.coversheet && typeof html2canvas!=="undefined"){
+    var f=parseDocFields(d); f.prepared=opts.dispatcher||"";
+    var cc=await renderCoversheetCanvas(f);
+    var cImg=cc.toDataURL("image/jpeg",0.92);
+    var cH=Math.min(792, 612*cc.height/cc.width);
+    pdf.addImage(cImg,"JPEG",0,0,612,cH,undefined,"FAST");
     first=false;
   }
   for(var k=0;k<d.pageOrder.length;k++){
@@ -1128,9 +1289,9 @@ function drawCoversheet(pdf,f){
 $("#genBtn").addEventListener("click",runBuild);
 async function runBuild(){
   clearErr();
-  if(typeof window.jspdf==="undefined"){ showErr("The PDF writer hasn't loaded — check the connection and retry."); return; }
+  if(typeof window.jspdf==="undefined"){ showErr("The page is still starting up — wait about 10 seconds and try again. If it persists, refresh the page."); return; }
   var active=state.docs.filter(function(d){return d.pageOrder.length>0;});
-  if(!active.length){ showErr("No shipments to build."); return; }
+  if(!active.length){ showErr("Nothing to build yet — drop a trailer scan and click Scan first."); return; }
   var missing=active.filter(function(d){return !d.barcode;});
   if(missing.length){
     if(!confirm(missing.length+" shipment(s) still have no barcode/PAPS number. They'll be labelled UNKNOWN. Continue?")) return;
@@ -1142,8 +1303,11 @@ async function runBuild(){
   var coversheet=$("#coverToggle").checked;
   var toList=$("#toInput").value.split(",").map(function(s){return s.trim();}).filter(Boolean);
   var port=$("#portInput").value.trim();
-  var time=$("#timeInput").value.trim();
-  var crossDate=fmtCrossDate($("#dateInput").value);
+  var timeN=normalizeTime($("#timeInput").value.trim());
+  var crossISO=$("#dateInput").value||"";
+  var trailer=$("#trailerInput").value.trim();
+  var ace=PORT_ACE[port]||"";
+  var coverTok = coversheet ? "pre-notification coversheet and " : "";
   var tmpl=$("#bodyTmpl").value;
   var sig=$("#sigBlock").value;
   // resolve dispatcher (dropdown or manual)
@@ -1158,12 +1322,15 @@ async function runBuild(){
     var d=active[i];
     setProg("Building attachments…",i,active.length,"Shipment "+(i+1)+" of "+active.length+" — "+(d.barcode||"UNKNOWN"));
     try{
-      var blob=await buildDocPdf(d,{thresh:thresh,deskew:deskew,coversheet:coversheet});
+      var blob=await buildDocPdf(d,{thresh:thresh,deskew:deskew,coversheet:coversheet,dispatcher:name});
       var bytes=blob.size;
       var b64=await blobToB64(blob);
       var subject=buildSubject(d.barcode||"UNKNOWN",port);
-      var sigFull=(name?name+"\n":"")+sig;
-      var body=fillBody(tmpl,{port:port,date:crossDate,time:time,barcode:d.barcode})+"\n\n\n"+sigFull;
+      var ff=parseDocFields(d);
+      var filled=fillBody(tmpl,{cover:coverTok,barcode:(d.barcode||"UNKNOWN"),port:port,ace:ace,bol:ff.bol,
+        date:crossISO,time:timeN,pieces:ff.pieces,weight:ff.weight,trailer:trailer,broker:"DHL"});
+      var closing="Regards,\n"+(name||"CPC Logistics Dispatch")+(sig?("\n"+sig):"");
+      var body=filled+"\n\n"+closing;
       var fname=sanitizeFilename((d.barcode||"UNKNOWN")+" - "+port)+".pdf";
       var eml=buildEml({to:toList,from:fromHdr,subject:subject,body:body,date:new Date().toUTCString(),
         boundarySeed:(d.barcode||"X")+i, attachment:{filename:fname,b64:b64}});
@@ -1314,12 +1481,55 @@ $("#threshRange").addEventListener("input",function(){
   $("#threshVal").textContent = v>255? "auto (Otsu)" : ("manual "+v);
 });
 
+/* ---------- remember dispatcher settings (localStorage) ---------- */
+var LS_KEY="cpc_prealert_v1";
+function saveSettings(){
+  try{
+    var s={ disp:$("#dispSelect").value, to:$("#toInput").value,
+      cover:$("#coverToggle").checked, deskew:$("#deskewToggle").checked,
+      thresh:$("#threshRange").value, prefix:$("#prefixInput").value,
+      name:($("#dispName")?$("#dispName").value:""), email:($("#dispEmail")?$("#dispEmail").value:"") };
+    localStorage.setItem(LS_KEY, JSON.stringify(s));
+  }catch(e){}
+}
+function restoreSettings(){
+  try{
+    var raw=localStorage.getItem(LS_KEY); if(!raw) return;
+    var s=JSON.parse(raw);
+    if(s.to) $("#toInput").value=s.to;
+    if(s.prefix) $("#prefixInput").value=s.prefix;
+    if(s.thresh!=null){ $("#threshRange").value=s.thresh; $("#threshRange").dispatchEvent(new Event("input")); }
+    if(s.cover) $("#coverToggle").checked=true;
+    if(s.deskew) $("#deskewToggle").checked=true;
+    if(s.disp!=null){
+      $("#dispSelect").value=s.disp;
+      if(s.disp==="__other"){ if($("#dispName"))$("#dispName").value=s.name||""; if($("#dispEmail"))$("#dispEmail").value=s.email||""; }
+      $("#dispSelect").dispatchEvent(new Event("change"));
+    }
+  }catch(e){}
+}
+["#dispSelect","#toInput","#coverToggle","#deskewToggle","#threshRange","#prefixInput","#dispName","#dispEmail"].forEach(function(sel){
+  var e=$(sel); if(e){ e.addEventListener("change",saveSettings); }
+});
+restoreSettings();
+
+/* ---------- first-run walkthrough ---------- */
+var TOUR_KEY="cpc_seen_tour_v1";
+function showTour(){ $("#tourOv").classList.add("show"); }
+function hideTour(){ $("#tourOv").classList.remove("show"); try{localStorage.setItem(TOUR_KEY,"1");}catch(e){} }
+(function(){
+  var c=$("#tourClose"); if(c) c.addEventListener("click",hideTour);
+  var ov=$("#tourOv"); if(ov) ov.addEventListener("click",function(e){ if(e.target===ov) hideTour(); });
+  var hb=$("#helpBtn"); if(hb) hb.addEventListener("click",showTour);
+  try{ if(!localStorage.getItem(TOUR_KEY)) setTimeout(showTour,500); }catch(e){}
+})();
+
 /* library load watchdog */
 var libTries=0;
 var libTimer=setInterval(function(){
   libTries++;
   if(libReady()){ clearInterval(libTimer); if(state.fileName) $("#dropMeta").textContent=""; }
-  else if(libTries>40){ clearInterval(libTimer); if(state.fileName) $("#dropMeta").textContent="Libraries slow to load — check the internet connection."; }
+  else if(libTries>40){ clearInterval(libTimer); if(state.fileName) $("#dropMeta").textContent="Still loading — check your internet connection, then refresh."; }
 },500);
 
 })(); }
