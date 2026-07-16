@@ -223,18 +223,27 @@ footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--muted);f
     <div class="tgrid">
       <div class="fld">
         <label for="portInput">Port of entry (this trailer)</label>
-        <input id="portInput" value="Port Huron" list="portList"/>
-        <datalist id="portList">
-          <option>Port Huron</option><option>Detroit</option><option>Buffalo</option>
-          <option>Champlain</option><option>Fort Erie</option><option>Windsor</option>
-          <option>Sarnia</option><option>Blaine</option>
-        </datalist>
-        <span class="sub">Used in every subject &amp; email body.</span>
+        <select id="portInput">
+          <option value="Port Huron" selected>Port Huron, MI · ACE 3803</option>
+          <option value="Buffalo">Buffalo, NY · ACE 0901</option>
+          <option value="Detroit">Detroit, MI · ACE 3801</option>
+          <option value="Portal">Portal, ND · ACE 3401</option>
+        </select>
+        <span class="sub" id="portHint">ACE 3803 · used in every subject &amp; email body.</span>
+      </div>
+      <div class="fld">
+        <label for="dateInput">Crossing date</label>
+        <input id="dateInput" type="date"/>
+        <span class="sub">Defaults to tomorrow. Fills every email for this trailer.</span>
       </div>
       <div class="fld">
         <label for="timeInput">Approx. crossing time</label>
-        <input id="timeInput" value="8pm" placeholder="e.g. 8pm"/>
-        <span class="sub">Drops into every email body for this trailer.</span>
+        <input id="timeInput" value="8pm" placeholder="e.g. 8pm" list="timeList"/>
+        <datalist id="timeList">
+          <option>6am</option><option>8am</option><option>10am</option><option>noon</option>
+          <option>2pm</option><option>4pm</option><option>6pm</option><option>8pm</option><option>10pm</option><option>midnight</option>
+        </datalist>
+        <span class="sub">Drops into every email body.</span>
       </div>
       <div class="fld">
         <label for="prefixInput">Barcode prefix (for OCR fallback)</label>
@@ -267,17 +276,25 @@ footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--muted);f
           <span class="sub">Comma-separated. These go on every pre-alert email.</span>
         </div>
         <div class="fld">
-          <label>Your name (From / signature)</label>
-          <input id="dispName" placeholder="e.g. Carrie Scarselli"/>
+          <label for="dispSelect">Dispatcher (From / signature)</label>
+          <select id="dispSelect">
+            <option value="" selected>Select dispatcher…</option>
+            <option value="Felicia Goodchild|f.goodchild@cpclogistics.ca">Felicia Goodchild</option>
+            <option value="Rajveer Kaur|r.kaur@cpclogistics.ca">Rajveer Kaur</option>
+            <option value="David Parsons|d.parsons@cpclogistics.ca">David Parsons</option>
+            <option value="__other">Other (type manually)…</option>
+          </select>
+          <span class="sub" id="dispEmailShow">Pick your name — it fills the From address &amp; signature.</span>
         </div>
-        <div class="fld">
-          <label>Your email (From:)</label>
-          <input id="dispEmail" placeholder="e.g. c.scarselli@cpclogistics.ca"/>
+        <div class="fld" id="dispCustom" style="display:none">
+          <label>Name &amp; email (manual)</label>
+          <input id="dispName" placeholder="Full name" style="margin-bottom:6px"/>
+          <input id="dispEmail" placeholder="name@cpclogistics.ca"/>
         </div>
         <div class="fld" style="grid-column:1/-1">
           <label>Email body template</label>
-          <textarea id="bodyTmpl" rows="4">Attached is the paperwork for a shipment crossing into {PORT} at approximately {TIME}.  If you could please process.</textarea>
-          <span class="sub">Placeholders: {PORT}, {TIME}, {BARCODE}. Your signature is added below it.</span>
+          <textarea id="bodyTmpl" rows="4">Attached is the paperwork for a shipment crossing into {PORT} on {DATE} at approximately {TIME}.  If you could please process.</textarea>
+          <span class="sub">Placeholders: {PORT}, {DATE}, {TIME}, {BARCODE}. Your signature is added below it.</span>
         </div>
         <div class="fld" style="grid-column:1/-1">
           <label>Signature block</label>
@@ -295,7 +312,7 @@ Grimsby, ON.</textarea>
           <span class="sub">Left = darker output. 256 = automatic.</span>
         </div>
       </div>
-      <div class="note warn" style="margin-top:14px"><span class="nb warn">Coversheet fields</span>The coversheet auto-fills: <b>PAPS/barcode #, port of entry, est. crossing date &amp; time, shipper/exporter, consignee/importer, carrier, PO number(s), pieces, weight, page count</b>. Turn it on above if you want it — tell me which fields to add or drop and I'll adjust.</div>
+      <div class="note warn" style="margin-top:14px"><span class="nb warn">Coversheet fields</span>The coversheet auto-fills: <b>PAPS/barcode #, port of entry (with ACE code), est. crossing date &amp; time, customs broker (DHL), shipper/exporter, consignee/importer, carrier, PO number(s), pieces, weight, page count</b>. Turn it on above if you want it prepended to each shipment.</div>
     </div>
   </details>
 
@@ -329,9 +346,13 @@ Grimsby, ON.</textarea>
     <div class="stats" id="stats"></div>
     <div id="vnotes"></div>
     <div class="actionbar" style="margin:0 0 14px">
-      <button class="btn btn-gold" id="dlAllBtn">
+      <button class="btn btn-gold" id="dlEmlBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM9 13l3 3 3-3M12 16V8"/></svg>
+        Download each as .eml (send all at once)
+      </button>
+      <button class="btn btn-ghost" id="dlAllBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-        Download all (.eml + PDFs + summary, ZIP)
+        Download all (ZIP: .eml + PDFs + summary)
       </button>
       <button class="btn btn-ghost" id="csvBtn">Export summary CSV</button>
       <button class="btn btn-ghost" id="printBtn">Print summary</button>
@@ -345,7 +366,7 @@ Grimsby, ON.</textarea>
         <tbody id="sumBody"></tbody>
       </table>
     </div>
-    <div class="note" style="margin-top:14px"><span class="nb ok">Tip</span>Open each <b>.eml</b> — it launches straight into Outlook as a ready-to-send draft (To + Subject + PDF already attached). Send it, then tick <b>Sent</b> here. When every row is ticked and no red flags remain, the whole trailer is confirmed submitted.</div>
+    <div class="note" style="margin-top:14px"><span class="nb ok">Fire the whole trailer</span>Click <b>Download each as .eml</b> (allow multiple downloads if Chrome asks). In your Downloads folder, <b>select all the .eml files and press Enter</b> — Outlook opens them all as ready-to-send drafts, each with the To list, subject and PDF already filled in. Give each a quick glance and press <b>Ctrl+Enter</b> to send, then tick <b>Sent</b> here. When every row is ticked and no red flags remain, the whole trailer is confirmed submitted.</div>
   </div>
 </main>
 
@@ -437,8 +458,22 @@ function buildSubject(barcode, port){ return (barcode||"UNKNOWN") + " - " + (por
 function fillBody(tmpl, ctx){
   return String(tmpl||"")
     .replace(/\{PORT\}/g, ctx.port||"")
+    .replace(/\{DATE\}/g, ctx.date||"")
     .replace(/\{TIME\}/g, ctx.time||"")
     .replace(/\{BARCODE\}/g, ctx.barcode||"");
+}
+// ACE port codes (CBP) for the ports we clear at
+var PORT_ACE = {"Port Huron":"3803","Buffalo":"0901","Detroit":"3801","Portal":"3401"};
+function fmtCrossDate(v){
+  // v = "YYYY-MM-DD"; return "Friday, July 17, 2026"
+  if(!v) return "";
+  var parts=String(v).split("-");
+  if(parts.length!==3) return v;
+  var d=new Date(+parts[0], +parts[1]-1, +parts[2]);
+  if(isNaN(d.getTime())) return v;
+  var days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  var mon=["January","February","March","April","May","June","July","August","September","October","November","December"];
+  return days[d.getDay()]+", "+mon[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear();
 }
 function foldHeader(value){ // basic; keep simple
   return String(value||"").replace(/[\r\n]+/g," ").trim();
@@ -489,7 +524,7 @@ function humanSize(b){ if(b<1024)return b+" B"; if(b<1048576)return (b/1024).toF
 /* Expose for node test harness */
 if(typeof module!=="undefined" && module.exports){
   module.exports={normalizeBarcode,looksLikeId,extractIdFromText,splitPages,findDuplicateBarcodes,
-    buildSubject,fillBody,buildEml,sanitizeFilename,csvCell,buildCsv,humanSize,base64ChunkWrap};
+    buildSubject,fillBody,fmtCrossDate,buildEml,sanitizeFilename,csvCell,buildCsv,humanSize,base64ChunkWrap};
 }
 
 /* ============================================================
@@ -556,7 +591,7 @@ function takeFile(f){
   if(f.type!=="application/pdf" && !/\.pdf$/i.test(f.name)){ showErr("Please drop a PDF — that's what the scanner produces."); return; }
   state.fileName=f.name;
   var suggested=guessPort(f.name);
-  if(suggested) $("#portInput").value=suggested;
+  if(suggested){ $("#portInput").value=suggested; updatePortHint(); }
   var r=new FileReader();
   r.onload=function(){
     state.pdfData=new Uint8Array(r.result);
@@ -570,10 +605,16 @@ function takeFile(f){
   r.readAsArrayBuffer(f);
 }
 function guessPort(name){
-  var ports=["Port Huron","Detroit","Buffalo","Champlain","Fort Erie","Windsor","Sarnia","Blaine"];
+  var ports=["Port Huron","Buffalo","Detroit","Portal"];
   var low=name.toLowerCase();
   for(var i=0;i<ports.length;i++){ if(low.indexOf(ports[i].toLowerCase())>=0) return ports[i]; }
   return null;
+}
+function updatePortHint(){
+  var v=$("#portInput").value;
+  var ace=PORT_ACE[v]||"";
+  var h=$("#portHint");
+  if(h) h.innerHTML = (ace?("ACE "+ace+" · "):"")+"used in every subject &amp; email body.";
 }
 
 $("#resetBtn").addEventListener("click",function(){ location.reload(); });
@@ -956,7 +997,23 @@ $("#addDocBtn").addEventListener("click",function(){
   renderDocs();
 });
 $("#expectedInput").addEventListener("change",function(){ if(state.docs.length) renderDocs(); });
-$("#portInput").addEventListener("change",function(){ var v=$("#portInput").value.trim(); state.docs.forEach(function(d){d.port=v;}); if(state.docs.length) renderDocs(); });
+$("#portInput").addEventListener("change",function(){ var v=$("#portInput").value.trim(); updatePortHint(); state.docs.forEach(function(d){d.port=v;}); if(state.docs.length) renderDocs(); });
+
+/* dispatcher dropdown */
+$("#dispSelect").addEventListener("change",function(){
+  var v=$("#dispSelect").value;
+  var custom=$("#dispCustom"), show=$("#dispEmailShow");
+  if(v==="__other"){ custom.style.display=""; show.textContent="Type your name and email at right."; }
+  else if(v){ custom.style.display="none"; var parts=v.split("|"); show.textContent="From: "+(parts[1]||""); }
+  else { custom.style.display="none"; show.textContent="Pick your name — it fills the From address & signature."; }
+});
+/* default crossing date = tomorrow (local) */
+(function initDate(){
+  var t=new Date(); t.setDate(t.getDate()+1);
+  var mm=String(t.getMonth()+1).padStart(2,"0"), dd=String(t.getDate()).padStart(2,"0");
+  var di=$("#dateInput"); if(di) di.value=t.getFullYear()+"-"+mm+"-"+dd;
+  updatePortHint();
+})();
 
 /* drag & drop pages between docs */
 var dragPageIdx=null,dragFromDoc=null;
@@ -995,11 +1052,13 @@ function parseDocFields(d){
   var pos=(text.match(/\b55\d{8}\b/g)||[]).join(", ");
   var pieces=grab(/(\d+)\s*pcs/i)|| (function(){var m=text.match(/(\d{2,4})\s*PC\b/);return m?m[1]:"";})();
   var wt=grab(/(\d+)\s*lbs/i);
+  var port=d.port||$("#portInput").value.trim();
   return {
     barcode:d.barcode||"",
-    port:d.port||$("#portInput").value.trim(),
+    port:port, ace:PORT_ACE[port]||"",
     time:$("#timeInput").value.trim(),
-    date:new Date().toLocaleDateString("en-US"),
+    date:fmtCrossDate($("#dateInput").value),
+    broker:"DHL",
     shipper:grab(/Exporter\/Supplier\s*([A-Za-z0-9 .,\-]+Inc\.?)/i)||"Exo-s Inc.",
     consignee:grab(/(John Deere[^\n]*)/i)||"John Deere Horicon",
     carrier:grab(/(DOHRN TRANSFER|DOHRN)/i)||"",
@@ -1040,8 +1099,9 @@ function drawCoversheet(pdf,f){
   pdf.setTextColor(ink[0],ink[1],ink[2]);
   var rows=[
     ["PAPS / Barcode #", f.barcode||"__________"],
-    ["Port of entry", f.port||"__________"],
+    ["Port of entry", (f.port||"__________")+(f.ace?("   (ACE "+f.ace+")"):"")],
     ["Est. crossing", (f.date||"")+"   approx. "+(f.time||"____")],
+    ["Customs broker", f.broker||"DHL"],
     ["Shipper / Exporter", f.shipper||"__________"],
     ["Consignee / Importer", f.consignee||"__________"],
     ["Carrier", f.carrier||"__________"],
@@ -1083,10 +1143,14 @@ async function runBuild(){
   var toList=$("#toInput").value.split(",").map(function(s){return s.trim();}).filter(Boolean);
   var port=$("#portInput").value.trim();
   var time=$("#timeInput").value.trim();
+  var crossDate=fmtCrossDate($("#dateInput").value);
   var tmpl=$("#bodyTmpl").value;
   var sig=$("#sigBlock").value;
-  var name=$("#dispName").value.trim();
-  var fromEmail=$("#dispEmail").value.trim();
+  // resolve dispatcher (dropdown or manual)
+  var name="", fromEmail="";
+  var dsel=$("#dispSelect").value;
+  if(dsel==="__other"){ name=$("#dispName").value.trim(); fromEmail=$("#dispEmail").value.trim(); }
+  else if(dsel){ var dp=dsel.split("|"); name=dp[0]||""; fromEmail=dp[1]||""; }
   var fromHdr = name && fromEmail ? (name+" <"+fromEmail+">") : (fromEmail||"");
 
   var results=[];
@@ -1099,7 +1163,7 @@ async function runBuild(){
       var b64=await blobToB64(blob);
       var subject=buildSubject(d.barcode||"UNKNOWN",port);
       var sigFull=(name?name+"\n":"")+sig;
-      var body=fillBody(tmpl,{port:port,time:time,barcode:d.barcode})+"\n\n\n"+sigFull;
+      var body=fillBody(tmpl,{port:port,date:crossDate,time:time,barcode:d.barcode})+"\n\n\n"+sigFull;
       var fname=sanitizeFilename((d.barcode||"UNKNOWN")+" - "+port)+".pdf";
       var eml=buildEml({to:toList,from:fromHdr,subject:subject,body:body,date:new Date().toUTCString(),
         boundarySeed:(d.barcode||"X")+i, attachment:{filename:fname,b64:b64}});
@@ -1210,6 +1274,15 @@ function downloadBlob(blob,name){
   a.href=url; a.download=name; document.body.appendChild(a); a.click();
   setTimeout(function(){URL.revokeObjectURL(url); a.remove();},1500);
 }
+$("#dlEmlBtn").addEventListener("click",function(){
+  if(!state.results||!state.results.length){ toast("Build the emails first."); return; }
+  var emls=state.results.filter(function(r){return r.eml;});
+  if(!emls.length){ toast("No emails to download."); return; }
+  emls.forEach(function(r,i){
+    setTimeout(function(){ downloadBlob(new Blob([r.eml],{type:"message/rfc822"}), r.emlName); }, i*350);
+  });
+  toast(emls.length+" .eml files downloading — select them all in Downloads and press Enter to open in Outlook.");
+});
 $("#dlAllBtn").addEventListener("click",async function(){
   if(!state.results||!state.results.length){ toast("Build the emails first."); return; }
   var zip=new JSZip();
