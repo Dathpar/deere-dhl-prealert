@@ -1,0 +1,1258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Deere DHL Pre-Alert Splitter &amp; Sender</title>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com"/>
+<link rel="preconnect" href="https://cdn.jsdelivr.net"/>
+<style>
+:root{
+  --ink:#12211B; --body:#40514A; --muted:#8A948D;
+  --line:#E4E9E5; --bg:#F5F7F5; --card:#FFFFFF;
+  --green:#114B8F; --green-d:#0D3A6E; --green-l:#EAF0F8;
+  --gold:#FFC20D;
+  --ok:#1E9E5A; --ok-bg:#E7F6EE;
+  --verify:#C98A00; --verify-bg:#FBF1DA;
+  --miss:#D24545; --miss-bg:#FBE9E9;
+  --shadow:0 1px 2px rgba(18,33,27,.04),0 8px 24px rgba(18,33,27,.06);
+  --shadow-lg:0 12px 40px rgba(18,33,27,.14);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.5}
+a{color:var(--green)}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+
+header.hero{background:linear-gradient(135deg,#0B2F5E 0%,#114B8F 55%,#1C5AAA 100%);color:#fff;position:relative;overflow:hidden;border-bottom:3px solid var(--gold)}
+header.hero::after{content:"";position:absolute;inset:0;background:radial-gradient(1200px 300px at 80% -40%,rgba(255,194,13,.20),transparent 60%);pointer-events:none}
+.hero-inner{display:flex;align-items:center;gap:16px;padding:26px 0 30px}
+.mark{flex:0 0 auto;border-radius:10px;background:#fff;display:flex;align-items:center;padding:9px 14px;box-shadow:0 2px 8px rgba(11,33,27,.18)}
+.mark svg{height:34px;display:block}
+.hero h1{font-size:22px;font-weight:800;letter-spacing:-.02em;margin:0}
+.hero p{margin:3px 0 0;color:#CFE1F6;font-size:13.5px;font-weight:500}
+.badge-secure{margin-left:auto;display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.16);padding:7px 12px;border-radius:999px;font-size:12px;font-weight:600;color:#EAF3FE}
+.badge-secure svg{width:14px;height:14px}
+
+main{padding:26px 0 72px}
+
+/* stepper */
+.steps{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}
+.step{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 13px 6px 8px;box-shadow:var(--shadow)}
+.step .no{width:20px;height:20px;border-radius:999px;background:#EEF1EE;color:var(--muted);display:grid;place-items:center;font-size:11px;font-weight:800}
+.step.active{color:var(--green-d);border-color:#BFD3EC}
+.step.active .no{background:var(--green);color:#fff}
+.step.done{color:var(--ok)}
+.step.done .no{background:var(--ok-bg);color:var(--ok)}
+
+.drop{background:var(--card);border:2px dashed #C1CEDE;border-radius:18px;padding:44px 28px;text-align:center;transition:.18s;cursor:pointer;box-shadow:var(--shadow)}
+.drop:hover{border-color:var(--green);background:#FCFDFC}
+.drop.drag{border-color:var(--green);background:var(--green-l);transform:translateY(-1px)}
+.drop .ico{width:58px;height:58px;margin:0 auto 14px;border-radius:16px;background:var(--green-l);display:grid;place-items:center}
+.drop .ico svg{width:30px;height:30px;color:var(--green)}
+.drop h2{margin:0 0 6px;font-size:18px;font-weight:700;letter-spacing:-.01em}
+.drop p{margin:0;color:var(--muted);font-size:13.5px}
+.drop .hint{margin-top:14px;font-size:12px;color:var(--muted)}
+.drop b{color:var(--green-d)}
+
+/* trailer bar */
+.trailerbar{display:none;margin-top:16px;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:16px 18px}
+.trailerbar.show{display:block}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.fld{display:flex;flex-direction:column;gap:5px}
+.fld label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.fld input,.fld textarea,.fld select{font-family:inherit;font-size:13.5px;border:1px solid var(--line);border-radius:9px;padding:9px 11px;background:#fff;color:var(--ink)}
+.fld input:focus,.fld textarea:focus,.fld select:focus{outline:none;border-color:var(--green)}
+.fld .sub{font-size:11px;color:var(--muted)}
+
+.actionbar{display:flex;align-items:center;gap:12px;margin-top:18px;flex-wrap:wrap}
+.btn{border:0;border-radius:11px;padding:12px 20px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:9px;transition:.15s}
+.btn svg{width:16px;height:16px}
+.btn-primary{background:var(--green);color:#fff;box-shadow:0 6px 16px rgba(17,75,143,.28)}
+.btn-primary:hover{background:var(--green-d)}
+.btn-primary:disabled{background:#B9C4D2;box-shadow:none;cursor:not-allowed}
+.btn-ghost{background:#fff;color:var(--ink);border:1px solid var(--line);box-shadow:var(--shadow)}
+.btn-ghost:hover{border-color:#C1CEDE;background:#FBFCFB}
+.btn-gold{background:var(--gold);color:#3A2E00;box-shadow:0 6px 16px rgba(255,194,13,.30)}
+.btn-gold:hover{filter:brightness(.96)}
+.btn-sm{padding:8px 13px;font-size:12.5px;border-radius:9px}
+.btn-xs{padding:5px 9px;font-size:11.5px;border-radius:8px;font-weight:700}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+
+.chip{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:7px 10px 7px 8px;font-size:12.5px;font-weight:500;box-shadow:var(--shadow)}
+.chip .dot{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;font-size:10px;font-weight:800;color:#fff;background:#C0392B}
+.files{margin:16px 0 0;display:flex;flex-wrap:wrap;gap:8px}
+
+.progress{margin-top:20px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 22px;box-shadow:var(--shadow);display:none}
+.progress.show{display:block}
+.progress .row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.progress .row b{font-size:15px;font-weight:700}
+.progress .row span{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.bar{height:9px;background:#E7ECEF;border-radius:999px;overflow:hidden}
+.bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--green),#3F7ED0);border-radius:999px;transition:width .25s}
+.plog{margin-top:10px;font-size:12px;color:var(--muted);min-height:16px}
+
+.section{display:none;margin-top:24px}
+.section.show{display:block}
+.section-t{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:24px 4px 12px;display:flex;align-items:center;gap:10px}
+.section-t .ln{flex:1;height:1px;background:var(--line)}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.stat .n{font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.stat .l{font-size:11px;font-weight:600;color:var(--muted);margin-top:6px;text-transform:uppercase;letter-spacing:.04em}
+.stat .strip{position:absolute;left:0;top:0;bottom:0;width:4px}
+.stat.total .strip{background:var(--green)}.stat.ok .strip{background:var(--ok)}
+.stat.verify .strip{background:var(--verify)}.stat.miss .strip{background:var(--miss)}.stat.sent .strip{background:var(--gold)}
+.stat.total .n{color:var(--green-d)}.stat.ok .n{color:var(--ok)}.stat.verify .n{color:var(--verify)}.stat.miss .n{color:var(--miss)}.stat.sent .n{color:#B98600}
+
+/* doc cards */
+.doc{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden;border-left:4px solid var(--ok)}
+.doc.warn{border-left-color:var(--verify)}
+.doc.bad{border-left-color:var(--miss)}
+.doc .dh{display:flex;align-items:center;gap:12px;padding:13px 16px;flex-wrap:wrap}
+.doc .idx{width:26px;height:26px;border-radius:8px;background:var(--green-l);color:var(--green-d);display:grid;place-items:center;font-size:12px;font-weight:800;flex:0 0 auto}
+.doc .bc{font-size:15px;font-weight:800;letter-spacing:.01em;font-variant-numeric:tabular-nums}
+.doc .bc input{font-size:15px;font-weight:800;border:1px solid var(--line);border-radius:8px;padding:5px 9px;width:170px;font-family:inherit}
+.doc .meta{font-size:12px;color:var(--muted)}
+.pill{flex:0 0 auto;font-size:10.5px;font-weight:800;letter-spacing:.03em;padding:4px 9px;border-radius:999px;text-transform:uppercase}
+.pill.ok{background:var(--ok-bg);color:var(--ok)}.pill.verify{background:var(--verify-bg);color:var(--verify)}.pill.miss{background:var(--miss-bg);color:var(--miss)}.pill.info{background:var(--green-l);color:var(--green-d)}
+.doc .spacer{flex:1}
+.doc .dctrl{display:flex;gap:6px;flex-wrap:wrap}
+.doc .pages{display:flex;gap:10px;flex-wrap:wrap;padding:4px 16px 16px}
+.pg{width:112px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff;position:relative}
+.pg.dragging{opacity:.4}
+.pg.over{outline:2px dashed var(--green);outline-offset:1px}
+.pg .thumb{width:112px;height:145px;object-fit:contain;background:#F1F4F1;display:block;cursor:grab}
+.pg .pgcap{display:flex;align-items:center;justify-content:space-between;padding:5px 6px;font-size:10.5px;color:var(--muted);border-top:1px solid var(--line)}
+.pg .pgcap .bcflag{font-weight:800}
+.pg .pgctrl{display:flex;gap:3px;padding:0 5px 6px}
+.pg .pgctrl button{flex:1;border:1px solid var(--line);background:#fff;border-radius:6px;font-size:10.5px;padding:3px 0;cursor:pointer;color:var(--body);font-weight:700}
+.pg .pgctrl button:hover{border-color:var(--green);color:var(--green)}
+.pg .obadge{position:absolute;top:5px;left:5px;font-size:9px;font-weight:800;padding:2px 6px;border-radius:6px;background:var(--gold);color:#3A2E00}
+.pg .obadge.ocr{background:var(--verify-bg);color:var(--verify)}
+.pg .obadge.none{background:var(--miss-bg);color:var(--miss)}
+
+.flags{padding:0 16px 14px}
+.flag{font-size:12px;color:var(--body);background:#FBF1DA;border:1px solid #F1E2B8;border-left:3px solid var(--verify);border-radius:8px;padding:8px 11px;margin-top:8px}
+.flag.bad{background:var(--miss-bg);border-color:#F1C6C6;border-left-color:var(--miss);color:#9B2C2C}
+
+/* table */
+.tblwrap{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:auto}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);background:#FAFBFA;position:sticky;top:0}
+td.mono{font-variant-numeric:tabular-nums;font-weight:700}
+tr.rsent{background:var(--ok-bg)}
+.tag{font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:999px}
+.tag.ok{background:var(--ok-bg);color:var(--ok)}.tag.verify{background:var(--verify-bg);color:var(--verify)}.tag.miss{background:var(--miss-bg);color:var(--miss)}
+
+.note{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--green);border-radius:10px;padding:11px 14px;font-size:12.5px;color:var(--body);box-shadow:var(--shadow);margin-bottom:10px}
+.note.warn{border-left-color:var(--verify);background:#FEFBF3}
+.note.miss{border-left-color:var(--miss);background:#FEF6F6}
+.note .nb{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:6px;margin-right:8px;background:#EEF1EE;color:var(--muted)}
+.note .nb.ok{background:var(--ok-bg);color:var(--ok)}.note .nb.warn{background:var(--verify-bg);color:var(--verify)}.note .nb.miss{background:var(--miss-bg);color:var(--miss)}
+
+.err{background:var(--miss-bg);border:1px solid #F1C6C6;color:#9B2C2C;border-radius:12px;padding:14px 16px;margin-top:16px;font-size:13.5px;font-weight:500;display:none}
+.err.show{display:block}
+
+details.settings{margin-top:16px;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+details.settings>summary{cursor:pointer;padding:14px 18px;font-weight:700;font-size:13.5px;list-style:none;display:flex;align-items:center;gap:8px}
+details.settings>summary::-webkit-details-marker{display:none}
+details.settings>summary .chev{transition:.2s;color:var(--muted)}
+details.settings[open]>summary .chev{transform:rotate(90deg)}
+.settings .body{padding:4px 18px 20px;border-top:1px solid var(--line)}
+.toggle{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:600;color:var(--body)}
+.toggle input{width:16px;height:16px}
+
+footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--muted);font-size:12px;text-align:center}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:11px 18px;border-radius:10px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:.25s;box-shadow:var(--shadow-lg);z-index:50;max-width:90vw}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.spin{width:15px;height:15px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;display:inline-block;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.hidecanvas{position:absolute;left:-99999px;top:0}
+@media(max-width:820px){.stats{grid-template-columns:repeat(2,1fr)}}
+@media print{
+  header.hero,.drop,.trailerbar,.actionbar,.steps,details.settings,#docsSection,#dropZone,.badge-secure,footer .noprint{display:none!important}
+  body{background:#fff}
+  .tblwrap{box-shadow:none;border:1px solid #999}
+  th{position:static}
+}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap hero-inner">
+    <div class="mark" title="CPC Logistics Canada">
+      <svg viewBox="0 0 150 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="CPC Logistics Canada">
+        <text x="0" y="27" font-family="Inter,Segoe UI,sans-serif" font-size="26" font-weight="800" letter-spacing="-1" fill="#114B8F">CPC</text>
+        <rect x="60" y="7" width="3" height="22" fill="#FFC20D"/>
+        <text x="70" y="17" font-family="Inter,Segoe UI,sans-serif" font-size="10.5" font-weight="800" letter-spacing="1.5" fill="#114B8F">LOGISTICS</text>
+        <text x="70" y="30" font-family="Inter,Segoe UI,sans-serif" font-size="9" font-weight="600" letter-spacing="2.5" fill="#8A948D">CANADA</text>
+      </svg>
+    </div>
+    <div>
+      <h1>Deere DHL Pre-Alert Splitter &amp; Sender</h1>
+      <p>Bulk-scan a trailer → split by PAPS barcode → one DHL email per shipment → verify nothing was missed.</p>
+    </div>
+    <div class="badge-secure" title="All processing happens in your browser. Nothing is uploaded anywhere. No login.">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Runs in your browser
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="steps" id="steps">
+    <div class="step active" data-step="1"><span class="no">1</span> Scan &amp; drop</div>
+    <div class="step" data-step="2"><span class="no">2</span> Split &amp; review</div>
+    <div class="step" data-step="3"><span class="no">3</span> Emails</div>
+    <div class="step" data-step="4"><span class="no">4</span> Verify &amp; send</div>
+  </div>
+
+  <!-- STEP 1: DROP -->
+  <div id="dropZone" class="drop" tabindex="0" role="button" aria-label="Drop trailer PDF">
+    <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg></div>
+    <h2>Drop the bulk trailer scan (one PDF)</h2>
+    <p>The full multi-page scan for one trailer — every shipment stacked together.</p>
+    <div class="hint">Drag &amp; drop or <b>click to choose a PDF</b>. Nothing leaves this computer.</div>
+    <input type="file" id="fileInput" accept="application/pdf" style="display:none"/>
+  </div>
+  <div class="files" id="fileChips"></div>
+
+  <!-- Trailer settings -->
+  <div class="trailerbar" id="trailerBar">
+    <div class="tgrid">
+      <div class="fld">
+        <label for="portInput">Port of entry (this trailer)</label>
+        <input id="portInput" value="Port Huron" list="portList"/>
+        <datalist id="portList">
+          <option>Port Huron</option><option>Detroit</option><option>Buffalo</option>
+          <option>Champlain</option><option>Fort Erie</option><option>Windsor</option>
+          <option>Sarnia</option><option>Blaine</option>
+        </datalist>
+        <span class="sub">Used in every subject &amp; email body.</span>
+      </div>
+      <div class="fld">
+        <label for="timeInput">Approx. crossing time</label>
+        <input id="timeInput" value="8pm" placeholder="e.g. 8pm"/>
+        <span class="sub">Drops into every email body for this trailer.</span>
+      </div>
+      <div class="fld">
+        <label for="prefixInput">Barcode prefix (for OCR fallback)</label>
+        <input id="prefixInput" value="DEER"/>
+        <span class="sub">Helps read the ID from text if the barcode won't scan.</span>
+      </div>
+      <div class="fld">
+        <label for="expectedInput">Expected shipment count (optional)</label>
+        <input id="expectedInput" type="number" min="0" placeholder="e.g. 12"/>
+        <span class="sub">Cross-checked against what's found.</span>
+      </div>
+    </div>
+    <div class="actionbar">
+      <button class="btn btn-primary" id="scanBtn" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2M3 12h18"/></svg>
+        Scan &amp; split
+      </button>
+      <button class="btn btn-ghost btn-sm" id="resetBtn">Start over</button>
+      <span class="sub" id="dropMeta" style="color:var(--muted);font-size:12.5px"></span>
+    </div>
+  </div>
+
+  <details class="settings" id="settingsBox">
+    <summary><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg> Settings — recipients, signature, image &amp; coversheet options</summary>
+    <div class="body">
+      <div class="tgrid" style="margin-top:14px">
+        <div class="fld" style="grid-column:1/-1">
+          <label>DHL / broker recipients (To:)</label>
+          <input id="toInput" value="mi_paps_prealert@dhl.com, g.cross@cpclogistics.ca, ics.phn@dhl.com, s.noble@callcpc.com"/>
+          <span class="sub">Comma-separated. These go on every pre-alert email.</span>
+        </div>
+        <div class="fld">
+          <label>Your name (From / signature)</label>
+          <input id="dispName" placeholder="e.g. Carrie Scarselli"/>
+        </div>
+        <div class="fld">
+          <label>Your email (From:)</label>
+          <input id="dispEmail" placeholder="e.g. c.scarselli@cpclogistics.ca"/>
+        </div>
+        <div class="fld" style="grid-column:1/-1">
+          <label>Email body template</label>
+          <textarea id="bodyTmpl" rows="4">Attached is the paperwork for a shipment crossing into {PORT} at approximately {TIME}.  If you could please process.</textarea>
+          <span class="sub">Placeholders: {PORT}, {TIME}, {BARCODE}. Your signature is added below it.</span>
+        </div>
+        <div class="fld" style="grid-column:1/-1">
+          <label>Signature block</label>
+          <textarea id="sigBlock" rows="4">Team Leader
+CPC Logistics Canada LTD.
+Grimsby, ON.</textarea>
+        </div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:18px;margin-top:16px">
+        <label class="toggle"><input type="checkbox" id="deskewToggle"/> Auto-deskew pages (slower)</label>
+        <label class="toggle"><input type="checkbox" id="coverToggle"/> Prepend DHL coversheet to each shipment</label>
+        <div class="fld" style="min-width:220px">
+          <label for="threshRange">B/W threshold <span id="threshVal" style="color:var(--green-d)">auto (Otsu)</span></label>
+          <input type="range" id="threshRange" min="0" max="255" value="256"/>
+          <span class="sub">Left = darker output. 256 = automatic.</span>
+        </div>
+      </div>
+      <div class="note warn" style="margin-top:14px"><span class="nb warn">Coversheet fields</span>The coversheet auto-fills: <b>PAPS/barcode #, port of entry, est. crossing date &amp; time, shipper/exporter, consignee/importer, carrier, PO number(s), pieces, weight, page count</b>. Turn it on above if you want it — tell me which fields to add or drop and I'll adjust.</div>
+    </div>
+  </details>
+
+  <div class="progress" id="progress">
+    <div class="row"><b id="progTitle">Scanning pages…</b><span id="progCount"></span></div>
+    <div class="bar"><i id="progBar"></i></div>
+    <div class="plog" id="progLog"></div>
+  </div>
+
+  <div class="err" id="errBox"></div>
+
+  <!-- STEP 2: DOCS -->
+  <div class="section" id="docsSection">
+    <div class="section-t">Shipments found <span class="ln"></span>
+      <button class="btn btn-ghost btn-xs" id="addDocBtn">+ Manual shipment</button>
+    </div>
+    <div id="notes"></div>
+    <div id="docs"></div>
+    <div class="actionbar">
+      <button class="btn btn-primary" id="genBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM4 9h16M9 9v11"/></svg>
+        Build attachments &amp; emails
+      </button>
+      <span class="sub" style="color:var(--muted);font-size:12.5px">One PDF + one .eml per shipment, normalized to the DHL image spec.</span>
+    </div>
+  </div>
+
+  <!-- STEP 3/4: VERIFY -->
+  <div class="section" id="verifySection">
+    <div class="section-t">Run summary — trailer verification <span class="ln"></span></div>
+    <div class="stats" id="stats"></div>
+    <div id="vnotes"></div>
+    <div class="actionbar" style="margin:0 0 14px">
+      <button class="btn btn-gold" id="dlAllBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        Download all (.eml + PDFs + summary, ZIP)
+      </button>
+      <button class="btn btn-ghost" id="csvBtn">Export summary CSV</button>
+      <button class="btn btn-ghost" id="printBtn">Print summary</button>
+    </div>
+    <div class="tblwrap">
+      <table id="sumTable">
+        <thead><tr>
+          <th>Sent</th><th>#</th><th>Barcode / PAPS</th><th>Pages</th><th>Port</th>
+          <th>Detected via</th><th>Image spec</th><th>Size</th><th>Email</th><th>Flags</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="sumBody"></tbody>
+      </table>
+    </div>
+    <div class="note" style="margin-top:14px"><span class="nb ok">Tip</span>Open each <b>.eml</b> — it launches straight into Outlook as a ready-to-send draft (To + Subject + PDF already attached). Send it, then tick <b>Sent</b> here. When every row is ticked and no red flags remain, the whole trailer is confirmed submitted.</div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    CPC Logistics — Deere / DHL PAPS pre-alert tool · Sibling of the
+    <a href="https://dathpar.github.io/deere-customs-consolidator/" target="_blank" rel="noopener">Deere Customs Consolidator</a>.
+    100% client-side · no upload · no login.
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+<div id="scratch" class="hidecanvas" aria-hidden="true"></div>
+
+<!-- CDN libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<script>
+"use strict";
+/* ============================================================
+   Deere DHL Pre-Alert Splitter & Sender  —  all client-side
+   ============================================================ */
+
+/* ---------- pure/testable helpers (also exported for node tests) ---------- */
+function normalizeBarcode(raw){
+  if(!raw) return "";
+  return String(raw).toUpperCase().replace(/[^A-Z0-9]/g,"");
+}
+function looksLikeId(v, prefix){
+  if(!v) return false;
+  v = normalizeBarcode(v);
+  var p = normalizeBarcode(prefix||"");
+  if(p && v.indexOf(p)===0 && v.length>=p.length+4) return true;
+  // generic: letters then >=5 digits, or >=7 digits
+  if(/^[A-Z]{2,5}\d{5,}$/.test(v)) return true;
+  if(/^\d{7,}$/.test(v)) return true;
+  return false;
+}
+function extractIdFromText(text, prefix){
+  if(!text) return "";
+  var p = (prefix||"DEER").toUpperCase();
+  var pesc = p.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+  var up = text.toUpperCase();
+  // prefix followed by a run of digits that may contain stray spaces (scanner splits them)
+  var re = new RegExp(pesc + "[\\s\\d]{5,12}", "g");
+  var m = up.match(re) || [];
+  for(var i=0;i<m.length;i++){
+    var norm = normalizeBarcode(m[i]);              // strips spaces
+    if(new RegExp("^"+pesc+"\\d{5,8}$").test(norm)) return norm;
+  }
+  // fallback: first tidy prefix+digits with no spaces
+  var m2 = up.match(new RegExp(pesc + "\\d{5,8}"));
+  return m2 ? normalizeBarcode(m2[0]) : "";
+}
+// Split ordered pages -> documents. Each page: {barcode, method}. Returns [{barcode, pageOrder:[i], detection}]
+function splitPages(pages){
+  var docs=[]; var cur=null;
+  for(var i=0;i<pages.length;i++){
+    var pg=pages[i]; var bc=pg.barcode||"";
+    if(bc){
+      if(!cur || cur.barcode!==bc){
+        cur={barcode:bc, pageOrder:[i], methods:[pg.method||null]};
+        docs.push(cur);
+      }else{
+        cur.pageOrder.push(i); cur.methods.push(pg.method||null);
+      }
+    }else{
+      if(cur){ cur.pageOrder.push(i); cur.methods.push(null); }
+      else{
+        // pages before any barcode -> orphan doc
+        cur={barcode:"", orphan:true, pageOrder:[i], methods:[null]};
+        docs.push(cur);
+      }
+    }
+  }
+  return docs;
+}
+function findDuplicateBarcodes(docs){
+  var seen={}, dups={};
+  docs.forEach(function(d){ if(d.barcode){ seen[d.barcode]=(seen[d.barcode]||0)+1; } });
+  Object.keys(seen).forEach(function(k){ if(seen[k]>1) dups[k]=seen[k]; });
+  return dups;
+}
+function buildSubject(barcode, port){ return (barcode||"UNKNOWN") + " - " + (port||"").trim(); }
+function fillBody(tmpl, ctx){
+  return String(tmpl||"")
+    .replace(/\{PORT\}/g, ctx.port||"")
+    .replace(/\{TIME\}/g, ctx.time||"")
+    .replace(/\{BARCODE\}/g, ctx.barcode||"");
+}
+function foldHeader(value){ // basic; keep simple
+  return String(value||"").replace(/[\r\n]+/g," ").trim();
+}
+function base64ChunkWrap(b64){ return b64.replace(/(.{76})/g,"$1\r\n"); }
+// Build a valid RFC822 message/rfc822 string. attachment = {filename, b64}
+function buildEml(opts){
+  var CRLF="\r\n";
+  var boundary="----=_CPC_"+(opts.boundarySeed||"BOUNDARY");
+  var to=(opts.to||[]).map(foldHeader).join(", ");
+  var lines=[];
+  lines.push("X-Unsent: 1");
+  if(opts.from) lines.push("From: "+foldHeader(opts.from));
+  lines.push("To: "+to);
+  lines.push("Subject: "+foldHeader(opts.subject));
+  if(opts.date) lines.push("Date: "+opts.date);
+  lines.push("MIME-Version: 1.0");
+  lines.push('Content-Type: multipart/mixed; boundary="'+boundary+'"');
+  lines.push("");
+  lines.push("This is a multi-part message in MIME format.");
+  lines.push("--"+boundary);
+  lines.push('Content-Type: text/plain; charset="utf-8"');
+  lines.push("Content-Transfer-Encoding: base64");
+  lines.push("");
+  var bodyB64 = (opts.b64Body!=null) ? opts.b64Body : toB64(unescape(encodeURIComponent(opts.body||"")));
+  lines.push(base64ChunkWrap(bodyB64));
+  if(opts.attachment){
+    lines.push("--"+boundary);
+    lines.push('Content-Type: application/pdf; name="'+opts.attachment.filename+'"');
+    lines.push("Content-Transfer-Encoding: base64");
+    lines.push('Content-Disposition: attachment; filename="'+opts.attachment.filename+'"');
+    lines.push("");
+    lines.push(base64ChunkWrap(opts.attachment.b64));
+  }
+  lines.push("--"+boundary+"--");
+  lines.push("");
+  return lines.join(CRLF);
+}
+function toB64(str){
+  if(typeof btoa==="function") return btoa(str);
+  return Buffer.from(str,"binary").toString("base64"); // node
+}
+function sanitizeFilename(s){ return String(s||"file").replace(/[\\\/:*?"<>|]+/g,"_").replace(/\s+/g," ").trim(); }
+function csvCell(v){ v=(v==null?"":String(v)); return /[",\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
+function buildCsv(rows){ return rows.map(function(r){return r.map(csvCell).join(",");}).join("\r\n"); }
+function humanSize(b){ if(b<1024)return b+" B"; if(b<1048576)return (b/1024).toFixed(0)+" KB"; return (b/1048576).toFixed(2)+" MB"; }
+
+/* Expose for node test harness */
+if(typeof module!=="undefined" && module.exports){
+  module.exports={normalizeBarcode,looksLikeId,extractIdFromText,splitPages,findDuplicateBarcodes,
+    buildSubject,fillBody,buildEml,sanitizeFilename,csvCell,buildCsv,humanSize,base64ChunkWrap};
+}
+
+/* ============================================================
+   Browser-only code below
+   ============================================================ */
+if(typeof window!=="undefined"){ (function(){
+
+/* ---- image spec constants (CBP DIS) ---- */
+var DPI=200;                     // target output DPI
+var LTR_W=Math.round(8.5*DPI);   // 1700
+var LTR_H=Math.round(11*DPI);    // 2200
+var SCAN_DPI=Math.round(300*72/72); // render scale target for decoding (~300dpi equivalent)
+var MAX_BYTES=5*1024*1024;
+
+var $=function(s){return document.querySelector(s);};
+var el=function(t,c,h){var e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e;};
+
+var state={
+  fileName:null, pdfData:null, pages:[], docs:[], built:false
+};
+
+/* ---------- library readiness ---------- */
+function libReady(){
+  return (typeof pdfjsLib!=="undefined") && (typeof ZXing!=="undefined") && (window.jspdf) && (window.JSZip);
+}
+function initPdfWorker(){
+  if(typeof pdfjsLib!=="undefined"){
+    try{ pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"; }catch(e){}
+  }
+}
+initPdfWorker();
+
+/* ---------- toast / progress / error ---------- */
+var toastT;
+function toast(msg){var t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(function(){t.classList.remove("show");},2600);}
+function showErr(msg){var e=$("#errBox"); e.textContent=msg; e.classList.add("show");}
+function clearErr(){$("#errBox").classList.remove("show");}
+function progress(show){$("#progress").classList.toggle("show",!!show);}
+function setProg(title,cur,total,log){
+  $("#progTitle").textContent=title;
+  $("#progCount").textContent = total?(cur+" / "+total):"";
+  $("#progBar").style.width = total?Math.round(cur/total*100)+"%":"0%";
+  if(log!=null) $("#progLog").textContent=log;
+}
+function setStep(n){
+  document.querySelectorAll(".step").forEach(function(s){
+    var d=+s.getAttribute("data-step");
+    s.classList.toggle("active",d===n);
+    s.classList.toggle("done",d<n);
+  });
+}
+
+/* ---------- file intake ---------- */
+var dz=$("#dropZone"), fi=$("#fileInput");
+dz.addEventListener("click",function(){fi.click();});
+dz.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();fi.click();}});
+["dragenter","dragover"].forEach(function(ev){dz.addEventListener(ev,function(e){e.preventDefault();dz.classList.add("drag");});});
+["dragleave","drop"].forEach(function(ev){dz.addEventListener(ev,function(e){e.preventDefault();dz.classList.remove("drag");});});
+dz.addEventListener("drop",function(e){var f=e.dataTransfer.files&&e.dataTransfer.files[0]; if(f) takeFile(f);});
+fi.addEventListener("change",function(){if(fi.files[0]) takeFile(fi.files[0]);});
+
+function takeFile(f){
+  clearErr();
+  if(f.type!=="application/pdf" && !/\.pdf$/i.test(f.name)){ showErr("Please drop a PDF — that's what the scanner produces."); return; }
+  state.fileName=f.name;
+  var suggested=guessPort(f.name);
+  if(suggested) $("#portInput").value=suggested;
+  var r=new FileReader();
+  r.onload=function(){
+    state.pdfData=new Uint8Array(r.result);
+    $("#fileChips").innerHTML="";
+    var chip=el("div","chip","<span class='dot'>PDF</span> "+f.name+" · "+humanSize(f.size));
+    $("#fileChips").appendChild(chip);
+    $("#trailerBar").classList.add("show");
+    $("#scanBtn").disabled=false;
+    $("#dropMeta").textContent = libReady()?"":"Loading libraries… if this stays, check your connection.";
+  };
+  r.readAsArrayBuffer(f);
+}
+function guessPort(name){
+  var ports=["Port Huron","Detroit","Buffalo","Champlain","Fort Erie","Windsor","Sarnia","Blaine"];
+  var low=name.toLowerCase();
+  for(var i=0;i<ports.length;i++){ if(low.indexOf(ports[i].toLowerCase())>=0) return ports[i]; }
+  return null;
+}
+
+$("#resetBtn").addEventListener("click",function(){ location.reload(); });
+
+/* ---------- ZXing decode ---------- */
+function makeReader(){
+  var hints=new Map();
+  hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS,[
+    ZXing.BarcodeFormat.CODE_128, ZXing.BarcodeFormat.CODE_39,
+    ZXing.BarcodeFormat.ITF, ZXing.BarcodeFormat.CODABAR,
+    ZXing.BarcodeFormat.CODE_93
+  ]);
+  hints.set(ZXing.DecodeHintType.TRY_HARDER,true);
+  var reader=new ZXing.MultiFormatReader();
+  reader.setHints(hints);
+  return reader;
+}
+function decodeCanvas(reader,canvas){
+  try{
+    var src=new ZXing.HTMLCanvasElementLuminanceSource(canvas);
+    var bb=new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(src));
+    var res=reader.decode(bb);
+    reader.reset();
+    return res?res.getText():null;
+  }catch(e){ try{reader.reset();}catch(_){} return null; }
+}
+// rotate a canvas by 90*k
+function rotateCanvas(canvas,deg){
+  var c=document.createElement("canvas"),ctx;
+  if(deg===90||deg===270){ c.width=canvas.height; c.height=canvas.width; }
+  else{ c.width=canvas.width; c.height=canvas.height; }
+  ctx=c.getContext("2d");
+  ctx.save();
+  ctx.translate(c.width/2,c.height/2);
+  ctx.rotate(deg*Math.PI/180);
+  ctx.drawImage(canvas,-canvas.width/2,-canvas.height/2);
+  ctx.restore();
+  return c;
+}
+function tryDecodeAllOrientations(reader,canvas,prefix){
+  var degs=[0,180,90,270];
+  for(var i=0;i<degs.length;i++){
+    var cv=degs[i]===0?canvas:rotateCanvas(canvas,degs[i]);
+    var txt=decodeCanvas(reader,cv);
+    if(txt){ var n=normalizeBarcode(txt); if(looksLikeId(n,prefix)||n.length>=6) return {value:n,rot:degs[i]}; }
+  }
+  return null;
+}
+
+/* ---------- render pdf page to canvas ---------- */
+function renderPage(page,scale){
+  var vp=page.getViewport({scale:scale});
+  var canvas=document.createElement("canvas");
+  canvas.width=Math.ceil(vp.width); canvas.height=Math.ceil(vp.height);
+  var ctx=canvas.getContext("2d",{willReadFrequently:true});
+  ctx.fillStyle="#fff"; ctx.fillRect(0,0,canvas.width,canvas.height);
+  return page.render({canvasContext:ctx,viewport:vp}).promise.then(function(){return canvas;});
+}
+function downscale(canvas,maxW){
+  if(canvas.width<=maxW) return canvas;
+  var r=maxW/canvas.width;
+  var c=document.createElement("canvas"); c.width=maxW; c.height=Math.round(canvas.height*r);
+  c.getContext("2d").drawImage(canvas,0,0,c.width,c.height);
+  return c;
+}
+
+/* ---------- Otsu threshold -> bitonal ---------- */
+function toGray(imgData){
+  var d=imgData.data, n=d.length/4, g=new Uint8ClampedArray(n);
+  for(var i=0,j=0;i<d.length;i+=4,j++){ g[j]=(d[i]*0.299+d[i+1]*0.587+d[i+2]*0.114)|0; }
+  return g;
+}
+function otsu(gray){
+  var hist=new Array(256).fill(0),i;
+  for(i=0;i<gray.length;i++) hist[gray[i]]++;
+  var total=gray.length,sum=0;
+  for(i=0;i<256;i++) sum+=i*hist[i];
+  var sumB=0,wB=0,wF=0,max=0,thr=127;
+  for(i=0;i<256;i++){
+    wB+=hist[i]; if(wB===0)continue; wF=total-wB; if(wF===0)break;
+    sumB+=i*hist[i];
+    var mB=sumB/wB, mF=(sum-sumB)/wF, between=wB*wF*(mB-mF)*(mB-mF);
+    if(between>max){max=between;thr=i;}
+  }
+  return thr;
+}
+// draw source canvas onto Letter-portrait bitonal canvas
+function normalizeToLetter(srcCanvas,manualThresh,deskew){
+  var work=srcCanvas;
+  if(deskew){ work=deskewCanvas(srcCanvas); }
+  // fit into letter keeping aspect
+  var out=document.createElement("canvas"); out.width=LTR_W; out.height=LTR_H;
+  var octx=out.getContext("2d",{willReadFrequently:true});
+  octx.fillStyle="#fff"; octx.fillRect(0,0,LTR_W,LTR_H);
+  var scale=Math.min(LTR_W/work.width, LTR_H/work.height);
+  var w=Math.round(work.width*scale), h=Math.round(work.height*scale);
+  var x=Math.round((LTR_W-w)/2), y=Math.round((LTR_H-h)/2);
+  octx.imageSmoothingEnabled=true; octx.imageSmoothingQuality="high";
+  octx.drawImage(work,x,y,w,h);
+  // threshold whole letter canvas
+  var img=octx.getImageData(0,0,LTR_W,LTR_H);
+  var gray=toGray(img);
+  var thr=(manualThresh>=0&&manualThresh<=255)?manualThresh:otsu(gray);
+  var d=img.data;
+  for(var i=0,j=0;i<d.length;i+=4,j++){
+    var v=gray[j]<thr?0:255;
+    d[i]=d[i+1]=d[i+2]=v; d[i+3]=255;
+  }
+  octx.putImageData(img,0,0);
+  return out;
+}
+// light projection-profile deskew over +/-4 degrees
+function deskewCanvas(src){
+  var small=downscale(src,700);
+  var sctx=small.getContext("2d",{willReadFrequently:true});
+  var g=toGray(sctx.getImageData(0,0,small.width,small.height));
+  var thr=otsu(g);
+  var W=small.width,H=small.height;
+  var bin=new Uint8Array(W*H);
+  for(var i=0;i<g.length;i++) bin[i]=g[i]<thr?1:0;
+  function scoreAt(angle){
+    var rad=angle*Math.PI/180, tan=Math.tan(rad);
+    var rows=new Float64Array(H);
+    for(var y=0;y<H;y++){
+      var cnt=0;
+      for(var x=0;x<W;x+=2){
+        var yy=y+((x-W/2)*tan|0);
+        if(yy>=0&&yy<H && bin[yy*W+x]) cnt++;
+      }
+      rows[y]=cnt;
+    }
+    var mean=0,k; for(k=0;k<H;k++)mean+=rows[k]; mean/=H;
+    var vv=0; for(k=0;k<H;k++){var dd=rows[k]-mean; vv+=dd*dd;}
+    return vv;
+  }
+  var best=0,bestA=0;
+  for(var a=-4;a<=4;a+=0.5){ var s=scoreAt(a); if(s>best){best=s;bestA=a;} }
+  if(Math.abs(bestA)<0.25) return src;
+  var out=document.createElement("canvas"); out.width=src.width; out.height=src.height;
+  var octx=out.getContext("2d");
+  octx.fillStyle="#fff"; octx.fillRect(0,0,out.width,out.height);
+  octx.translate(out.width/2,out.height/2);
+  octx.rotate(-bestA*Math.PI/180);
+  octx.drawImage(src,-src.width/2,-src.height/2);
+  return out;
+}
+
+/* ---------- main scan pipeline ---------- */
+var ocrWorker=null;
+async function ensureOcr(){
+  if(ocrWorker) return ocrWorker;
+  if(typeof Tesseract==="undefined") return null;
+  try{
+    ocrWorker=await Tesseract.createWorker("eng");
+    return ocrWorker;
+  }catch(e){ ocrWorker=null; return null; }
+}
+
+$("#scanBtn").addEventListener("click",runScan);
+
+async function runScan(){
+  clearErr();
+  if(!state.pdfData){ showErr("Drop a trailer PDF first."); return; }
+  if(typeof pdfjsLib==="undefined"){ showErr("The PDF engine hasn't loaded yet — check the internet connection and try again."); return; }
+  if(typeof ZXing==="undefined"){ showErr("The barcode reader hasn't loaded yet — check the connection and try again."); return; }
+  $("#scanBtn").disabled=true;
+  setStep(2); progress(true); state.pages=[]; state.docs=[]; state.built=false;
+  $("#docsSection").classList.remove("show"); $("#verifySection").classList.remove("show");
+
+  var prefix=$("#prefixInput").value.trim()||"DEER";
+  var reader=makeReader();
+  try{
+    var pdf=await pdfjsLib.getDocument({data:state.pdfData.slice()}).promise;
+    var total=pdf.numPages;
+    var ocrUsed=false;
+    for(var p=1;p<=total;p++){
+      setProg("Reading barcodes…",p-1,total,"Page "+p+" of "+total);
+      var page=await pdf.getPage(p);
+      // scale so width ~ 2000px (approx 300 dpi for letter)
+      var vp1=page.getViewport({scale:1});
+      var scale=Math.min(3.0, 2000/vp1.width);
+      var canvas=await renderPage(page,scale);
+      // try to grab embedded text (born-digital) as a hint too
+      var textHint="";
+      try{ var tc=await page.getTextContent(); textHint=tc.items.map(function(it){return it.str;}).join(" "); }catch(e){}
+      // decode
+      var found=tryDecodeAllOrientations(reader, downscale(canvas,1600), prefix);
+      // also try upper-left region (where the sticker sits) at full res
+      if(!found){
+        var crop=cropCanvas(canvas,0,0,0.72,0.55);
+        found=tryDecodeAllOrientations(reader,crop,prefix);
+      }
+      var rec={index:p-1, canvas:canvas, rotation:0, barcode:"", method:null, textHint:textHint};
+      if(found){ rec.barcode=found.value; rec.method="barcode"; }
+      else{
+        // text hint from embedded layer
+        var idFromText=extractIdFromText(textHint,prefix);
+        if(idFromText){ rec.barcode=idFromText; rec.method="text"; }
+        else{
+          // OCR fallback
+          setProg("Barcode unreadable — OCR…",p-1,total,"Page "+p+": running OCR fallback");
+          var w=await ensureOcr();
+          if(w){
+            try{
+              var region=cropCanvas(canvas,0,0,1,0.5);
+              var res=await w.recognize(region);
+              var idOcr=extractIdFromText(res.data.text,prefix);
+              if(idOcr){ rec.barcode=idOcr; rec.method="ocr"; ocrUsed=true; }
+            }catch(e){}
+          }
+        }
+      }
+      rec.thumb=downscale(canvas,150).toDataURL("image/jpeg",0.7);
+      state.pages.push(rec);
+    }
+    setProg("Splitting shipments…",total,total,"");
+    state.docs=buildDocsFromPages();
+    progress(false);
+    renderDocs();
+    $("#docsSection").classList.add("show");
+    $("#docsSection").scrollIntoView({behavior:"smooth",block:"start"});
+    toast(state.docs.length+" shipment"+(state.docs.length===1?"":"s")+" detected across "+total+" pages");
+  }catch(err){
+    console.error(err); progress(false); showErr("Couldn't process that PDF: "+(err&&err.message?err.message:err));
+    $("#scanBtn").disabled=false;
+  }
+}
+function cropCanvas(canvas,fx,fy,fw,fh){
+  var x=Math.round(canvas.width*fx),y=Math.round(canvas.height*fy),
+      w=Math.round(canvas.width*fw),h=Math.round(canvas.height*fh);
+  var c=document.createElement("canvas"); c.width=w; c.height=h;
+  c.getContext("2d").drawImage(canvas,x,y,w,h,0,0,w,h);
+  return c;
+}
+
+/* ---------- build doc objects from pages ---------- */
+function buildDocsFromPages(){
+  var simple=state.pages.map(function(pg){return {barcode:pg.barcode,method:pg.method};});
+  var groups=splitPages(simple);
+  var port=$("#portInput").value.trim();
+  return groups.map(function(g,i){
+    var methods=g.methods.filter(Boolean);
+    var det = g.orphan?"none" : (g.methods[0]==="barcode"?"barcode":(g.methods[0]==="ocr"?"ocr":(g.methods[0]==="text"?"text":"barcode")));
+    return {
+      id:"d"+i+"_"+Math.random().toString(36).slice(2,7),
+      barcode:g.barcode, orphan:!!g.orphan,
+      pageOrder:g.pageOrder.slice(),
+      detection:det, port:port,
+      manual:false
+    };
+  });
+}
+function recomputeFromDocs(){
+  // keep doc objects, just re-render (pageOrder edited in place)
+  renderDocs();
+}
+
+/* ---------- render doc review UI ---------- */
+function docStatus(d){
+  if(d.orphan || !d.barcode) return {cls:"bad",pill:"miss",label:"No barcode"};
+  if(d.detection==="ocr"||d.detection==="text") return {cls:"warn",pill:"verify",label:d.detection==="ocr"?"OCR — verify":"From text — verify"};
+  return {cls:"",pill:"ok",label:"Barcode"};
+}
+function renderDocs(){
+  var dups=findDuplicateBarcodes(state.docs);
+  var wrap=$("#docs"); wrap.innerHTML="";
+  // notes
+  var notes=$("#notes"); notes.innerHTML="";
+  var orphanCount=state.docs.filter(function(d){return d.orphan||!d.barcode;}).length;
+  var ocrCount=state.docs.filter(function(d){return d.detection==="ocr"||d.detection==="text";}).length;
+  var expected=parseInt($("#expectedInput").value,10);
+  var withBc=state.docs.filter(function(d){return d.barcode && !d.orphan;}).length;
+  if(!isNaN(expected)&&expected>0 && expected!==withBc){
+    notes.appendChild(el("div","note miss","<span class='nb miss'>Count mismatch</span>You expected <b>"+expected+"</b> shipments but <b>"+withBc+"</b> barcoded shipment"+(withBc===1?"":"s")+" were found. Check for missed or extra pages before sending."));
+  }
+  if(Object.keys(dups).length){
+    notes.appendChild(el("div","note warn","<span class='nb warn'>Duplicate</span>Barcode(s) <b>"+Object.keys(dups).join(", ")+"</b> appear on more than one shipment. Merge them if they're the same shipment, or confirm they're truly separate."));
+  }
+  if(orphanCount){
+    notes.appendChild(el("div","note miss","<span class='nb miss'>Action</span><b>"+orphanCount+"</b> shipment"+(orphanCount===1?"":"s")+" have no barcode. Type the PAPS number in, or merge the pages into the shipment above/below."));
+  }
+  if(ocrCount){
+    notes.appendChild(el("div","note warn","<span class='nb warn'>Verify</span><b>"+ocrCount+"</b> ID"+(ocrCount===1?" was":"s were")+" read from text/OCR, not a clean barcode scan. Eyeball the number against the page."));
+  }
+  if(!notes.children.length){
+    notes.appendChild(el("div","note","<span class='nb ok'>Looks clean</span>Every shipment has a scanned barcode. Review the page groupings, then build the emails."));
+  }
+
+  state.docs.forEach(function(d,i){
+    var st=docStatus(d);
+    var card=el("div","doc "+st.cls);
+    card.setAttribute("data-doc",d.id);
+    var head=el("div","dh");
+    head.appendChild(el("div","idx",(i+1)));
+    var bcWrap=el("div","bc");
+    var bcInput=el("input"); bcInput.value=d.barcode||""; bcInput.placeholder="Type PAPS #";
+    bcInput.addEventListener("change",function(){ d.barcode=normalizeBarcode(bcInput.value); if(d.barcode){d.orphan=false; if(d.detection==="none")d.detection="manual";} renderDocs(); });
+    bcWrap.appendChild(bcInput);
+    head.appendChild(bcWrap);
+    head.appendChild(el("span","pill "+st.pill,st.label));
+    head.appendChild(el("div","meta","Pages "+pageRangeLabel(d.pageOrder)+" · "+d.pageOrder.length+" pg"));
+    head.appendChild(el("div","spacer"));
+    var ctrl=el("div","dctrl");
+    if(i>0){ var mu=el("button","btn btn-ghost btn-xs",null,""); mu.textContent="⬆ Merge into #"+i; mu.onclick=function(){mergeUp(i);}; ctrl.appendChild(mu); }
+    var del=el("button","btn btn-ghost btn-xs"); del.textContent="Delete"; del.onclick=function(){ if(d.pageOrder.length && !confirm("Delete this shipment? Its "+d.pageOrder.length+" page(s) will be removed from the run.")) return; state.docs.splice(i,1); renderDocs(); };
+    ctrl.appendChild(del);
+    head.appendChild(ctrl);
+    card.appendChild(head);
+
+    var pages=el("div","pages");
+    d.pageOrder.forEach(function(pi,pidx){
+      var pg=state.pages[pi];
+      var box=el("div","pg"); box.setAttribute("draggable","true");
+      box.setAttribute("data-doc",d.id); box.setAttribute("data-page",pi);
+      var ob = pg.method==="barcode"?"":(pg.method==="ocr"||pg.method==="text"?"ocr":"none");
+      var obLabel = pg.method==="barcode"?"BARCODE":(pg.method==="ocr"?"OCR":(pg.method==="text"?"TEXT":"NO CODE"));
+      if(pg.barcode||pidx===0){
+        box.appendChild(el("div","obadge "+ob,obLabel));
+      }
+      var img=el("img","thumb"); img.src=pg.thumb; img.alt="page "+(pi+1);
+      box.appendChild(img);
+      box.appendChild(el("div","pgcap","<span>p."+(pi+1)+"</span><span class='bcflag'>"+(pg.barcode||"—")+"</span>"));
+      var pc=el("div","pgctrl");
+      var bPrev=el("button"); bPrev.textContent="◀ up"; bPrev.title="Move to shipment above"; bPrev.disabled=(i===0); bPrev.onclick=function(){movePageToDoc(pi,i,i-1);};
+      var bRot=el("button"); bRot.textContent="⟳"; bRot.title="Rotate 90°"; bRot.onclick=function(){pg.rotation=((pg.rotation||0)+90)%360; regenThumb(pg); renderDocs();};
+      var bSplit=el("button"); bSplit.textContent="split"; bSplit.title="Start a new shipment at this page"; bSplit.onclick=function(){splitAt(i,pidx);};
+      var bNext=el("button"); bNext.textContent="dn ▶"; bNext.title="Move to shipment below"; bNext.disabled=(i===state.docs.length-1); bNext.onclick=function(){movePageToDoc(pi,i,i+1);};
+      pc.appendChild(bPrev); pc.appendChild(bRot); pc.appendChild(bSplit); pc.appendChild(bNext);
+      box.appendChild(pc);
+      pages.appendChild(box);
+    });
+    card.appendChild(pages);
+    wrap.appendChild(card);
+  });
+  enableDnD();
+  setStep(2);
+}
+function pageRangeLabel(order){
+  if(!order.length) return "—";
+  var mn=Math.min.apply(null,order)+1, mx=Math.max.apply(null,order)+1;
+  return mn===mx? (""+mn) : (mn+"–"+mx);
+}
+function regenThumb(pg){
+  var rc = pg.rotation? rotateCanvas(pg.canvas,pg.rotation): pg.canvas;
+  pg.thumb=downscale(rc,150).toDataURL("image/jpeg",0.7);
+}
+function mergeUp(i){
+  if(i<=0) return;
+  var prev=state.docs[i-1], cur=state.docs[i];
+  prev.pageOrder=prev.pageOrder.concat(cur.pageOrder);
+  state.docs.splice(i,1);
+  renderDocs();
+}
+function movePageToDoc(pageIdx,fromI,toI){
+  if(toI<0||toI>=state.docs.length) return;
+  var from=state.docs[fromI];
+  from.pageOrder=from.pageOrder.filter(function(x){return x!==pageIdx;});
+  var to=state.docs[toI];
+  if(toI<fromI){ to.pageOrder.push(pageIdx); }        // moving up -> append to end of prev
+  else { to.pageOrder.unshift(pageIdx); }             // moving down -> prepend to next
+  to.pageOrder.sort(function(a,b){return a-b;});
+  from.pageOrder.sort(function(a,b){return a-b;});
+  if(!from.pageOrder.length){ state.docs.splice(fromI,1); }
+  renderDocs();
+}
+function splitAt(docI,pageIdxInDoc){
+  var d=state.docs[docI];
+  if(pageIdxInDoc<=0) return;
+  var head=d.pageOrder.slice(0,pageIdxInDoc);
+  var tail=d.pageOrder.slice(pageIdxInDoc);
+  d.pageOrder=head;
+  var firstPage=state.pages[tail[0]];
+  var newDoc={id:"d"+Math.random().toString(36).slice(2,8), barcode:firstPage.barcode||"", orphan:!firstPage.barcode,
+    pageOrder:tail, detection:firstPage.method==="barcode"?"barcode":(firstPage.method?"ocr":"none"), port:d.port, manual:true};
+  state.docs.splice(docI+1,0,newDoc);
+  renderDocs();
+}
+$("#addDocBtn").addEventListener("click",function(){
+  state.docs.push({id:"d"+Math.random().toString(36).slice(2,8),barcode:"",orphan:true,pageOrder:[],detection:"none",port:$("#portInput").value.trim(),manual:true});
+  renderDocs();
+});
+$("#expectedInput").addEventListener("change",function(){ if(state.docs.length) renderDocs(); });
+$("#portInput").addEventListener("change",function(){ var v=$("#portInput").value.trim(); state.docs.forEach(function(d){d.port=v;}); if(state.docs.length) renderDocs(); });
+
+/* drag & drop pages between docs */
+var dragPageIdx=null,dragFromDoc=null;
+function enableDnD(){
+  document.querySelectorAll(".pg").forEach(function(box){
+    box.addEventListener("dragstart",function(e){ dragPageIdx=+box.getAttribute("data-page"); dragFromDoc=box.getAttribute("data-doc"); box.classList.add("dragging"); e.dataTransfer.effectAllowed="move"; });
+    box.addEventListener("dragend",function(){ box.classList.remove("dragging"); document.querySelectorAll(".pg.over").forEach(function(x){x.classList.remove("over");}); });
+    box.addEventListener("dragover",function(e){ e.preventDefault(); box.classList.add("over"); });
+    box.addEventListener("dragleave",function(){ box.classList.remove("over"); });
+    box.addEventListener("drop",function(e){
+      e.preventDefault(); box.classList.remove("over");
+      if(dragPageIdx==null) return;
+      var targetDocId=box.getAttribute("data-doc");
+      var targetPage=+box.getAttribute("data-page");
+      moveByDrop(dragPageIdx,targetDocId,targetPage);
+      dragPageIdx=null;dragFromDoc=null;
+    });
+  });
+}
+function docIndexById(id){ for(var i=0;i<state.docs.length;i++) if(state.docs[i].id===id) return i; return -1; }
+function moveByDrop(pageIdx,targetDocId,beforePage){
+  var toI=docIndexById(targetDocId); if(toI<0) return;
+  // remove from any doc
+  state.docs.forEach(function(d){ d.pageOrder=d.pageOrder.filter(function(x){return x!==pageIdx;}); });
+  var to=state.docs[toI];
+  var pos=to.pageOrder.indexOf(beforePage);
+  if(pos<0) to.pageOrder.push(pageIdx); else to.pageOrder.splice(pos,0,pageIdx);
+  state.docs=state.docs.filter(function(d){return d.pageOrder.length>0;});
+  renderDocs();
+}
+
+/* ---------- parse doc fields for coversheet ---------- */
+function parseDocFields(d){
+  var text=d.pageOrder.map(function(pi){return state.pages[pi].textHint||"";}).join("\n");
+  function grab(re){ var m=text.match(re); return m?m[1].trim().replace(/\s+/g," "):""; }
+  var pos=(text.match(/\b55\d{8}\b/g)||[]).join(", ");
+  var pieces=grab(/(\d+)\s*pcs/i)|| (function(){var m=text.match(/(\d{2,4})\s*PC\b/);return m?m[1]:"";})();
+  var wt=grab(/(\d+)\s*lbs/i);
+  return {
+    barcode:d.barcode||"",
+    port:d.port||$("#portInput").value.trim(),
+    time:$("#timeInput").value.trim(),
+    date:new Date().toLocaleDateString("en-US"),
+    shipper:grab(/Exporter\/Supplier\s*([A-Za-z0-9 .,\-]+Inc\.?)/i)||"Exo-s Inc.",
+    consignee:grab(/(John Deere[^\n]*)/i)||"John Deere Horicon",
+    carrier:grab(/(DOHRN TRANSFER|DOHRN)/i)||"",
+    pos:pos, pieces:pieces, weight:wt, pageCount:d.pageOrder.length
+  };
+}
+
+/* ---------- build PDF per doc ---------- */
+async function buildDocPdf(d,opts){
+  var jsPDF=window.jspdf.jsPDF;
+  var pdf=new jsPDF({unit:"pt",format:"letter",orientation:"portrait"});
+  var first=true;
+  // optional coversheet
+  if(opts.coversheet){
+    drawCoversheet(pdf,parseDocFields(d));
+    first=false;
+  }
+  for(var k=0;k<d.pageOrder.length;k++){
+    var pg=state.pages[d.pageOrder[k]];
+    var srcCanvas = pg.rotation? rotateCanvas(pg.canvas,pg.rotation): pg.canvas;
+    var norm=normalizeToLetter(srcCanvas,opts.thresh,opts.deskew);
+    var dataUrl=norm.toDataURL("image/png"); // bitonal -> compresses small
+    if(!first) pdf.addPage("letter","portrait");
+    pdf.addImage(dataUrl,"PNG",0,0,612,792,undefined,"FAST");
+    first=false;
+  }
+  var blob=pdf.output("blob");
+  return blob;
+}
+function drawCoversheet(pdf,f){
+  var gold=[255,194,13], blue=[17,75,143], ink=[18,33,27];
+  pdf.setFillColor(blue[0],blue[1],blue[2]); pdf.rect(0,0,612,66,"F");
+  pdf.setFillColor(gold[0],gold[1],gold[2]); pdf.rect(0,66,612,4,"F");
+  pdf.setTextColor(255,255,255); pdf.setFont("helvetica","bold"); pdf.setFontSize(16);
+  pdf.text("DHL PAPS PRE-ALERT — COVER SHEET",36,32);
+  pdf.setFontSize(10); pdf.setFont("helvetica","normal");
+  pdf.text("CPC Logistics Canada Ltd.  ·  John Deere customs clearance",36,50);
+  pdf.setTextColor(ink[0],ink[1],ink[2]);
+  var rows=[
+    ["PAPS / Barcode #", f.barcode||"__________"],
+    ["Port of entry", f.port||"__________"],
+    ["Est. crossing", (f.date||"")+"   approx. "+(f.time||"____")],
+    ["Shipper / Exporter", f.shipper||"__________"],
+    ["Consignee / Importer", f.consignee||"__________"],
+    ["Carrier", f.carrier||"__________"],
+    ["PO number(s)", f.pos||"__________"],
+    ["Pieces", f.pieces||"____"],
+    ["Weight", f.weight?(f.weight+" lbs"):"____"],
+    ["Attached pages", String(f.pageCount||"")]
+  ];
+  var y=110;
+  pdf.setFontSize(11);
+  rows.forEach(function(r){
+    pdf.setFont("helvetica","bold"); pdf.setTextColor(90,100,94);
+    pdf.text(r[0].toUpperCase(),46,y);
+    pdf.setFont("helvetica","normal"); pdf.setTextColor(ink[0],ink[1],ink[2]);
+    pdf.text(String(r[1]),250,y);
+    pdf.setDrawColor(228,233,229); pdf.line(46,y+9,566,y+9);
+    y+=34;
+  });
+  pdf.setFontSize(9); pdf.setTextColor(140,148,141);
+  pdf.text("Auto-generated by the CPC Deere/DHL pre-alert tool. Please process the attached commercial invoice.",46,y+16);
+}
+
+/* ---------- build all: attachments + emails ---------- */
+$("#genBtn").addEventListener("click",runBuild);
+async function runBuild(){
+  clearErr();
+  if(typeof window.jspdf==="undefined"){ showErr("The PDF writer hasn't loaded — check the connection and retry."); return; }
+  var active=state.docs.filter(function(d){return d.pageOrder.length>0;});
+  if(!active.length){ showErr("No shipments to build."); return; }
+  var missing=active.filter(function(d){return !d.barcode;});
+  if(missing.length){
+    if(!confirm(missing.length+" shipment(s) still have no barcode/PAPS number. They'll be labelled UNKNOWN. Continue?")) return;
+  }
+  $("#genBtn").disabled=true;
+  setStep(3); progress(true);
+  var thresh=parseInt($("#threshRange").value,10); if(thresh>255) thresh=-1;
+  var deskew=$("#deskewToggle").checked;
+  var coversheet=$("#coverToggle").checked;
+  var toList=$("#toInput").value.split(",").map(function(s){return s.trim();}).filter(Boolean);
+  var port=$("#portInput").value.trim();
+  var time=$("#timeInput").value.trim();
+  var tmpl=$("#bodyTmpl").value;
+  var sig=$("#sigBlock").value;
+  var name=$("#dispName").value.trim();
+  var fromEmail=$("#dispEmail").value.trim();
+  var fromHdr = name && fromEmail ? (name+" <"+fromEmail+">") : (fromEmail||"");
+
+  var results=[];
+  for(var i=0;i<active.length;i++){
+    var d=active[i];
+    setProg("Building attachments…",i,active.length,"Shipment "+(i+1)+" of "+active.length+" — "+(d.barcode||"UNKNOWN"));
+    try{
+      var blob=await buildDocPdf(d,{thresh:thresh,deskew:deskew,coversheet:coversheet});
+      var bytes=blob.size;
+      var b64=await blobToB64(blob);
+      var subject=buildSubject(d.barcode||"UNKNOWN",port);
+      var sigFull=(name?name+"\n":"")+sig;
+      var body=fillBody(tmpl,{port:port,time:time,barcode:d.barcode})+"\n\n\n"+sigFull;
+      var fname=sanitizeFilename((d.barcode||"UNKNOWN")+" - "+port)+".pdf";
+      var eml=buildEml({to:toList,from:fromHdr,subject:subject,body:body,date:new Date().toUTCString(),
+        boundarySeed:(d.barcode||"X")+i, attachment:{filename:fname,b64:b64}});
+      var specPass = bytes<=MAX_BYTES; // letter+bitonal+200dpi are guaranteed by construction
+      results.push({doc:d,subject:subject,body:body,pdfBlob:blob,pdfName:fname,bytes:bytes,b64:b64,
+        eml:eml,emlName:sanitizeFilename(subject)+".eml",specPass:specPass,toList:toList,sent:false});
+    }catch(e){
+      console.error(e);
+      results.push({doc:d,subject:buildSubject(d.barcode||"UNKNOWN",port),error:(e&&e.message)||String(e),specPass:false,bytes:0,sent:false});
+    }
+  }
+  state.results=results; state.built=true;
+  progress(false);
+  renderVerify();
+  setStep(4);
+  $("#verifySection").classList.add("show");
+  $("#verifySection").scrollIntoView({behavior:"smooth",block:"start"});
+  $("#genBtn").disabled=false;
+  toast("Built "+results.length+" shipment email"+(results.length===1?"":"s"));
+}
+function blobToB64(blob){
+  return new Promise(function(res,rej){
+    var r=new FileReader();
+    r.onload=function(){ var s=r.result; res(s.substr(s.indexOf(",")+1)); };
+    r.onerror=rej; r.readAsDataURL(blob);
+  });
+}
+
+/* ---------- verification summary ---------- */
+function renderVerify(){
+  var R=state.results;
+  var total=R.length;
+  var sent=R.filter(function(r){return r.sent;}).length;
+  var flaggedList=[];
+  var okCount=0,verifyCount=0,missCount=0;
+  R.forEach(function(r){
+    var f=rowFlags(r);
+    r._flags=f;
+    if(f.some(function(x){return x.bad;})) missCount++;
+    else if(f.length) verifyCount++;
+    else okCount++;
+  });
+  // stats
+  $("#stats").innerHTML="";
+  [["total",total,"Shipments"],["ok",okCount,"Clean"],["verify",verifyCount,"Verify"],["miss",missCount,"Needs fix"],["sent",sent+" / "+total,"Sent"]].forEach(function(s){
+    var c=el("div","stat "+s[0]); c.appendChild(el("div","strip")); c.appendChild(el("div","n",s[1])); c.appendChild(el("div","l",s[2]));
+    $("#stats").appendChild(c);
+  });
+  // top notes
+  var vn=$("#vnotes"); vn.innerHTML="";
+  var expected=parseInt($("#expectedInput").value,10);
+  var barcoded=R.filter(function(r){return r.doc.barcode;}).length;
+  if(!isNaN(expected)&&expected>0&&expected!==barcoded){
+    vn.appendChild(el("div","note miss","<span class='nb miss'>Count</span>Expected <b>"+expected+"</b>, built <b>"+barcoded+"</b> barcoded shipment"+(barcoded===1?"":"s")+". Reconcile before you finish."));
+  }
+  var dups=findDuplicateBarcodes(R.map(function(r){return r.doc;}));
+  if(Object.keys(dups).length){ vn.appendChild(el("div","note warn","<span class='nb warn'>Duplicate</span>Repeated barcode(s): <b>"+Object.keys(dups).join(", ")+"</b>.")); }
+  if(missCount===0&&verifyCount===0){ vn.appendChild(el("div","note","<span class='nb ok'>All clear</span>Every shipment has a clean barcode, a within-spec attachment, and an email ready. Send each .eml and tick it off.")); }
+
+  // table
+  var tb=$("#sumBody"); tb.innerHTML="";
+  R.forEach(function(r,i){
+    var tr=el("tr"); if(r.sent) tr.className="rsent";
+    var cSent=el("td"); var cb=el("input"); cb.type="checkbox"; cb.checked=r.sent; cb.onchange=function(){r.sent=cb.checked; renderVerify();}; cSent.appendChild(cb); tr.appendChild(cSent);
+    tr.appendChild(el("td",null,String(i+1)));
+    tr.appendChild(el("td","mono",r.doc.barcode||"<span style='color:#D24545'>UNKNOWN</span>"));
+    tr.appendChild(el("td",null,pageRangeLabel(r.doc.pageOrder)+" ("+r.doc.pageOrder.length+")"));
+    tr.appendChild(el("td",null,r.doc.port||""));
+    var det=r.doc.detection; var detTag = det==="barcode"?"<span class='tag ok'>Barcode</span>":(det==="ocr"?"<span class='tag verify'>OCR</span>":(det==="text"?"<span class='tag verify'>Text</span>":(det==="manual"?"<span class='tag verify'>Manual</span>":"<span class='tag miss'>None</span>")));
+    tr.appendChild(el("td",null,detTag));
+    tr.appendChild(el("td",null,r.specPass?"<span class='tag ok'>Letter · B/W · 200dpi</span>":"<span class='tag miss'>Check</span>"));
+    tr.appendChild(el("td","mono",r.bytes?humanSize(r.bytes):"—"));
+    var cEml=el("td");
+    if(r.eml){
+      var a=el("button","btn btn-ghost btn-xs"); a.textContent=".eml"; a.title="Open in Outlook, ready to send"; a.onclick=function(){downloadBlob(new Blob([r.eml],{type:"message/rfc822"}),r.emlName);};
+      var m=el("button","btn btn-ghost btn-xs"); m.textContent="mailto"; m.title="Opens compose with To+Subject (attach the PDF yourself)"; m.style.marginLeft="4px"; m.onclick=function(){openMailto(r);};
+      var p=el("button","btn btn-ghost btn-xs"); p.textContent="PDF"; p.style.marginLeft="4px"; p.onclick=function(){downloadBlob(r.pdfBlob,r.pdfName);};
+      cEml.appendChild(a); cEml.appendChild(m); cEml.appendChild(p);
+    }else{ cEml.innerHTML="<span class='tag miss'>error</span>"; }
+    tr.appendChild(cEml);
+    var fl=r._flags.map(function(x){return "<span class='tag "+(x.bad?"miss":"verify")+"' title='"+x.msg+"'>"+x.short+"</span>";}).join(" ")||"<span class='tag ok'>—</span>";
+    tr.appendChild(el("td",null,fl));
+    var cAct=el("td");
+    var send=el("button","btn btn-primary btn-xs"); send.textContent=r.sent?"Sent ✓":"Mark sent"; send.onclick=function(){r.sent=!r.sent; renderVerify();};
+    cAct.appendChild(send); tr.appendChild(cAct);
+    tb.appendChild(tr);
+  });
+}
+function rowFlags(r){
+  var f=[];
+  if(!r.doc.barcode) f.push({bad:true,short:"No barcode",msg:"No PAPS number — label will read UNKNOWN"});
+  if(r.doc.detection==="ocr") f.push({bad:false,short:"OCR — verify",msg:"ID read by OCR, not a clean barcode scan"});
+  if(r.doc.detection==="text") f.push({bad:false,short:"Text — verify",msg:"ID pulled from embedded text"});
+  if(r.doc.detection==="manual") f.push({bad:false,short:"Manual",msg:"Barcode entered by hand"});
+  if(r.error) f.push({bad:true,short:"Build error",msg:r.error});
+  if(r.bytes>MAX_BYTES) f.push({bad:true,short:"Too big",msg:"Attachment over 5 MB"});
+  return f;
+}
+function openMailto(r){
+  var to=(r.toList||[]).join(",");
+  var url="mailto:"+encodeURIComponent(to)+"?subject="+encodeURIComponent(r.subject)+"&body="+encodeURIComponent(r.body+"\n\n[Attach the shipment PDF before sending.]");
+  window.location.href=url;
+}
+
+/* ---------- downloads ---------- */
+function downloadBlob(blob,name){
+  var a=document.createElement("a"); var url=URL.createObjectURL(blob);
+  a.href=url; a.download=name; document.body.appendChild(a); a.click();
+  setTimeout(function(){URL.revokeObjectURL(url); a.remove();},1500);
+}
+$("#dlAllBtn").addEventListener("click",async function(){
+  if(!state.results||!state.results.length){ toast("Build the emails first."); return; }
+  var zip=new JSZip();
+  var folder=zip.folder("trailer_"+sanitizeFilename($("#portInput").value.trim()||"run"));
+  state.results.forEach(function(r){
+    if(r.eml) folder.file(r.emlName,r.eml);
+    if(r.pdfBlob) folder.file(r.pdfName,r.pdfBlob);
+  });
+  folder.file("run_summary.csv",currentCsv());
+  var blob=await zip.generateAsync({type:"blob"});
+  downloadBlob(blob,"DHL_prealert_"+sanitizeFilename($("#portInput").value.trim()||"trailer")+".zip");
+  toast("ZIP downloaded — open each .eml and send.");
+});
+$("#csvBtn").addEventListener("click",function(){ downloadBlob(new Blob([currentCsv()],{type:"text/csv"}),"run_summary.csv"); });
+$("#printBtn").addEventListener("click",function(){ window.print(); });
+function currentCsv(){
+  var rows=[["#","Barcode/PAPS","Pages","PageCount","Port","DetectedVia","ImageSpec","SizeBytes","EmailGenerated","Sent","Flags"]];
+  (state.results||[]).forEach(function(r,i){
+    rows.push([i+1, r.doc.barcode||"UNKNOWN", pageRangeLabel(r.doc.pageOrder), r.doc.pageOrder.length, r.doc.port||"",
+      r.doc.detection, r.specPass?"PASS":"CHECK", r.bytes||0, r.eml?"YES":"NO", r.sent?"YES":"NO",
+      (r._flags||[]).map(function(x){return x.short;}).join("; ")]);
+  });
+  return buildCsv(rows);
+}
+
+/* threshold label */
+$("#threshRange").addEventListener("input",function(){
+  var v=+$("#threshRange").value;
+  $("#threshVal").textContent = v>255? "auto (Otsu)" : ("manual "+v);
+});
+
+/* library load watchdog */
+var libTries=0;
+var libTimer=setInterval(function(){
+  libTries++;
+  if(libReady()){ clearInterval(libTimer); if(state.fileName) $("#dropMeta").textContent=""; }
+  else if(libTries>40){ clearInterval(libTimer); if(state.fileName) $("#dropMeta").textContent="Libraries slow to load — check the internet connection."; }
+},500);
+
+})(); }
+</script>
+</body>
+</html>
