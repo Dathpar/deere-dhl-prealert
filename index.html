@@ -117,10 +117,11 @@ main{padding:26px 0 72px}
 .doc .idx{width:26px;height:26px;border-radius:8px;background:var(--green-l);color:var(--green-d);display:grid;place-items:center;font-size:12px;font-weight:800;flex:0 0 auto}
 .doc .bc{font-size:15px;font-weight:800;letter-spacing:.01em;font-variant-numeric:tabular-nums}
 .doc .bc input{font-size:15px;font-weight:800;border:1px solid var(--line);border-radius:8px;padding:5px 9px;width:170px;font-family:inherit}
-.doc .cust{font-size:12px;border:1px solid var(--line);border-radius:8px;padding:4px 8px;width:150px;font-family:inherit}
-.doc .sid{font-size:12px;border:1px solid var(--line);border-radius:8px;padding:4px 8px;width:92px;font-family:inherit}
-.doc .pcs{font-size:12px;border:1px solid var(--line);border-radius:8px;padding:4px 8px;width:110px;font-family:inherit}
-.doc .wt{font-size:12px;border:1px solid var(--line);border-radius:8px;padding:4px 8px;width:80px;font-family:inherit}
+.doc .dfields{display:flex;flex-wrap:wrap;gap:12px;padding:2px 16px 14px}
+.doc .dfield{display:flex;flex-direction:column;gap:3px}
+.doc .dfield label{font-size:9px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:var(--muted)}
+.doc .dfield input{font-size:12px;border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-family:inherit}
+.doc input.f-cust{width:180px}.doc input.f-sid{width:150px}.doc input.f-bol{width:130px}.doc input.f-pcs{width:120px}.doc input.f-wt{width:100px}
 .doc .meta{font-size:12px;color:var(--muted)}
 .pill{flex:0 0 auto;font-size:10.5px;font-weight:800;letter-spacing:.03em;padding:4px 9px;border-radius:999px;text-transform:uppercase}
 .pill.ok{background:var(--ok-bg);color:var(--ok)}.pill.verify{background:var(--verify-bg);color:var(--verify)}.pill.miss{background:var(--miss-bg);color:var(--miss)}.pill.info{background:var(--green-l);color:var(--green-d)}
@@ -565,6 +566,15 @@ function showZoom(src,ev){
   z.classList.add("show");
 }
 function hideZoom(){ if(_zoomPop) _zoomPop.classList.remove("show"); }
+/* labelled editable field for the shipment card */
+function makeField(cls,label,ph,val,onchange){
+  var wrap=el("div","dfield");
+  wrap.appendChild(el("label",null,label));
+  var inp=el("input",cls); inp.value=val||""; inp.placeholder=ph;
+  inp.addEventListener("change",function(){ onchange(inp.value.trim()); });
+  wrap.appendChild(inp);
+  return wrap;
+}
 
 var state={
   fileName:null, pdfData:null, pages:[], docs:[], built:false
@@ -1005,7 +1015,7 @@ function buildDocsFromPages(){
       barcode:g.barcode, orphan:!!g.orphan,
       pageOrder:g.pageOrder.slice(),
       detection:det, port:port,
-      customer:"", sid:"", pieces:"", weight:"",
+      customer:"", sid:"", bol:"", pieces:"", weight:"",
       manual:false
     };
   });
@@ -1059,6 +1069,27 @@ function extractPieces(text){
   if(m) return m[1].replace(/,/g,"");
   return "";
 }
+// Bill of Lading number (e.g. "House Bill of Lading # 70167632").
+function extractBol(text){
+  if(!text) return "";
+  var m=text.match(/(?:house\s+)?bill\s+of\s+lading[^\d]{0,20}(\d{6,12})/i);
+  if(m) return m[1];
+  m=text.match(/\bB\/?O\/?L[^\d]{0,12}(\d{6,12})/i);
+  if(m) return m[1];
+  return "";
+}
+// Tidy a time like "2pm" -> "2:00 PM".
+function fmtClock(t){
+  if(!t) return "";
+  t=String(t).trim();
+  var m=t.match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i);
+  if(m) return m[1]+":"+m[2]+" "+m[3].toUpperCase();
+  m=t.match(/^(\d{1,2})\s*(am|pm)$/i);
+  if(m) return m[1]+":00 "+m[2].toUpperCase();
+  if(/^noon$/i.test(t)) return "12:00 PM";
+  if(/^midnight$/i.test(t)) return "12:00 AM";
+  return t;
+}
 // File name stem: Barcode - Customer - SA#(SID)
 function fileStem(d){
   var parts=[d.barcode||"UNKNOWN"];
@@ -1084,6 +1115,7 @@ async function enrichDocsWithOcr(){
       if(!d.sid) d.sid=extractSid(text);
       if(!d.weight) d.weight=extractWeight(text);
       if(!d.pieces) d.pieces=extractPieces(text);
+      if(!d.bol) d.bol=extractBol(text);
     }
   }
 }
@@ -1140,16 +1172,6 @@ function renderDocs(){
     head.appendChild(bcWrap);
     head.appendChild(el("span","pill "+st.pill,st.label));
     head.appendChild(el("div","meta","Pages "+pageRangeLabel(d.pageOrder)+" · "+d.pageOrder.length+" pg"));
-    var custInput=el("input","cust"); custInput.value=d.customer||""; custInput.placeholder="Customer (shipper)"; custInput.title="Read from the invoice — used in the file name. Correct if wrong.";
-    custInput.addEventListener("change",function(){ d.customer=custInput.value.trim(); });
-    var sidInput=el("input","sid"); sidInput.value=d.sid||""; sidInput.placeholder="SA# (SID)"; sidInput.title="SID / Shipping No — used in the file name. Correct if wrong.";
-    sidInput.addEventListener("change",function(){ d.sid=sidInput.value.trim(); });
-    head.appendChild(custInput); head.appendChild(sidInput);
-    var pcsInput=el("input","pcs"); pcsInput.value=d.pieces||""; pcsInput.placeholder="Pieces (no skid)"; pcsInput.title="Piece count excluding skid — for the CSV";
-    pcsInput.addEventListener("change",function(){ d.pieces=pcsInput.value.trim(); });
-    var wtInput=el("input","wt"); wtInput.value=d.weight||""; wtInput.placeholder="Weight"; wtInput.title="Total (gross) weight — for the CSV";
-    wtInput.addEventListener("change",function(){ d.weight=wtInput.value.trim(); });
-    head.appendChild(pcsInput); head.appendChild(wtInput);
     head.appendChild(el("div","spacer"));
     var ctrl=el("div","dctrl");
     if(i>0){ var mu=el("button","btn btn-ghost btn-xs",null,""); mu.textContent="⬆ Merge into #"+i; mu.onclick=function(){mergeUp(i);}; ctrl.appendChild(mu); }
@@ -1157,6 +1179,14 @@ function renderDocs(){
     ctrl.appendChild(del);
     head.appendChild(ctrl);
     card.appendChild(head);
+
+    var fields=el("div","dfields");
+    fields.appendChild(makeField("f-cust","Customer (shipper)","e.g. GATES",d.customer,function(v){d.customer=v;}));
+    fields.appendChild(makeField("f-sid","SA# (SID / Shipping No)","e.g. 256920",d.sid,function(v){d.sid=v;}));
+    fields.appendChild(makeField("f-bol","BOL #","Bill of Lading",d.bol,function(v){d.bol=v;}));
+    fields.appendChild(makeField("f-pcs","Piece count (no skid)","e.g. 1464",d.pieces,function(v){d.pieces=v;}));
+    fields.appendChild(makeField("f-wt","Total weight (lbs)","e.g. 988",d.weight,function(v){d.weight=v;}));
+    card.appendChild(fields);
 
     var pages=el("div","pages");
     d.pageOrder.forEach(function(pi,pidx){
@@ -1445,11 +1475,15 @@ async function runBuild(){
       var subject=buildSubject(d.barcode||"UNKNOWN",port);
       var sigFull=(name?name+"\n":"")+sig;
       var coverLine = coversheet ? "\n\nPlease find attached the cover sheet and customs documents." : "";
-      var totalsBits=[];
-      if(d.pieces) totalsBits.push("Pieces: "+d.pieces);
-      if(d.weight) totalsBits.push("Weight: "+d.weight+" lbs");
-      var totalsLine = totalsBits.length ? ("\n\n"+totalsBits.join("    ")) : "";
-      var body=fillBody(tmpl,{port:port,date:crossDate,time:time,barcode:d.barcode})+totalsLine+coverLine+"\n\n\n"+sigFull;
+      var details="\n\n"
+        +"• Shipment Control Number (SCN): "+(d.barcode||"")+"\n"
+        +"• BOL Number: "+(d.bol||"")+"\n"
+        +"• Estimated Port Arrival Day: "+($("#dateInput").value||"")+"\n"
+        +"• Estimated Port Arrival Time: "+fmtClock(time)+"\n"
+        +"• Piece Count: "+(d.pieces||"")+"\n"
+        +"• Total Weight: "+(d.weight?(d.weight+" lbs"):"")+"\n\n"
+        +"Please confirm receipt and advise when the shipment has been accepted and released for border crossing.";
+      var body=fillBody(tmpl,{port:port,date:crossDate,time:time,barcode:d.barcode})+coverLine+details+"\n\n\n"+sigFull;
       var fname=sanitizeFilename(fileStem(d))+".pdf";
       var eml=buildEml({to:toList,from:fromHdr,subject:subject,body:body,date:new Date().toUTCString(),
         boundarySeed:(d.barcode||"X")+i, attachment:{filename:fname,b64:b64}});
@@ -1587,9 +1621,9 @@ $("#dlAllBtn").addEventListener("click",async function(){
 $("#csvBtn").addEventListener("click",function(){ downloadBlob(new Blob([currentCsv()],{type:"text/csv"}),"run_summary.csv"); });
 $("#totalsBtn").addEventListener("click",function(){ downloadBlob(new Blob([totalsCsv()],{type:"text/csv"}),"shipment_totals.csv"); });
 function totalsCsv(){
-  var rows=[["Barcode/PAPS","Customer","SA# (SID)","Pieces (excl. skid)","Total weight"]];
+  var rows=[["SCN / PAPS","Customer","SA# (SID)","BOL #","Pieces (excl. skid)","Total weight"]];
   var src=(state.results&&state.results.length)? state.results.map(function(r){return r.doc;}) : state.docs;
-  (src||[]).forEach(function(d){ rows.push([d.barcode||"UNKNOWN", d.customer||"", d.sid||"", d.pieces||"", d.weight||""]); });
+  (src||[]).forEach(function(d){ rows.push([d.barcode||"UNKNOWN", d.customer||"", d.sid||"", d.bol||"", d.pieces||"", d.weight||""]); });
   return buildCsv(rows);
 }
 $("#printBtn").addEventListener("click",function(){ window.print(); });
