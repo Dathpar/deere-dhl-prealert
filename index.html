@@ -1387,7 +1387,11 @@ async function runBuild(){
       var subject=buildSubject(d.barcode||"UNKNOWN",port);
       var sigFull=(name?name+"\n":"")+sig;
       var coverLine = coversheet ? "\n\nPlease find attached the cover sheet and customs documents." : "";
-      var body=fillBody(tmpl,{port:port,date:crossDate,time:time,barcode:d.barcode})+coverLine+"\n\n\n"+sigFull;
+      var totalsBits=[];
+      if(d.pieces) totalsBits.push("Pieces: "+d.pieces);
+      if(d.weight) totalsBits.push("Weight: "+d.weight+" lbs");
+      var totalsLine = totalsBits.length ? ("\n\n"+totalsBits.join("    ")) : "";
+      var body=fillBody(tmpl,{port:port,date:crossDate,time:time,barcode:d.barcode})+totalsLine+coverLine+"\n\n\n"+sigFull;
       var fname=sanitizeFilename(fileStem(d))+".pdf";
       var eml=buildEml({to:toList,from:fromHdr,subject:subject,body:body,date:new Date().toUTCString(),
         boundarySeed:(d.barcode||"X")+i, attachment:{filename:fname,b64:b64}});
