@@ -119,6 +119,8 @@ main{padding:26px 0 72px}
 .doc .bc input{font-size:15px;font-weight:800;border:1px solid var(--line);border-radius:8px;padding:5px 9px;width:170px;font-family:inherit}
 .doc .cust{font-size:12px;border:1px solid var(--line);border-radius:8px;padding:4px 8px;width:150px;font-family:inherit}
 .doc .sid{font-size:12px;border:1px solid var(--line);border-radius:8px;padding:4px 8px;width:92px;font-family:inherit}
+.doc .pcs{font-size:12px;border:1px solid var(--line);border-radius:8px;padding:4px 8px;width:110px;font-family:inherit}
+.doc .wt{font-size:12px;border:1px solid var(--line);border-radius:8px;padding:4px 8px;width:80px;font-family:inherit}
 .doc .meta{font-size:12px;color:var(--muted)}
 .pill{flex:0 0 auto;font-size:10.5px;font-weight:800;letter-spacing:.03em;padding:4px 9px;border-radius:999px;text-transform:uppercase}
 .pill.ok{background:var(--ok-bg);color:var(--ok)}.pill.verify{background:var(--verify-bg);color:var(--verify)}.pill.miss{background:var(--miss-bg);color:var(--miss)}.pill.info{background:var(--green-l);color:var(--green-d)}
@@ -310,11 +312,7 @@ Grimsby, ON.</textarea>
       <div style="display:flex;flex-wrap:wrap;gap:18px;margin-top:16px">
         <label class="toggle"><input type="checkbox" id="deskewToggle"/> Auto-deskew pages (slower)</label>
         <label class="toggle"><input type="checkbox" id="coverToggle"/> Prepend DHL coversheet to each shipment</label>
-        <div class="fld" style="min-width:220px">
-          <label for="threshRange">B/W threshold <span id="threshVal" style="color:var(--green-d)">auto (Otsu)</span></label>
-          <input type="range" id="threshRange" min="0" max="255" value="256"/>
-          <span class="sub">Left = darker output. 256 = automatic.</span>
-        </div>
+        <span class="sub" style="align-self:center;max-width:300px">Every page is auto-cleaned to a crisp black-and-white tuned for DHL&rsquo;s reader &mdash; no manual adjustment needed.</span>
       </div>
       <div class="note warn" style="margin-top:14px"><span class="nb warn">Coversheet</span>Turns on DHL&apos;s official <b>Global Forwarding PAPS cover sheet</b>, auto-filled from the scan (SCN#, port + ACE code, ETA, pieces, page count) plus the fixed broker, SCAC and 24/7 dispatch details. Prepended in front of each shipment&apos;s documents.</div>
     </div>
@@ -359,6 +357,7 @@ Grimsby, ON.</textarea>
         Download all (ZIP: .eml + PDFs + summary)
       </button>
       <button class="btn btn-ghost" id="csvBtn">Export summary CSV</button>
+      <button class="btn btn-ghost" id="totalsBtn">Export pieces &amp; weight CSV</button>
       <button class="btn btn-ghost" id="printBtn">Print summary</button>
     </div>
     <div class="tblwrap">
@@ -750,6 +749,47 @@ function otsu(gray){
   }
   return thr;
 }
+// Auto-levels + adaptive threshold -> clean black/white that OCR reads well.
+function cleanBitonal(gray,W,H){
+  var hist=new Array(256).fill(0),i;
+  for(i=0;i<gray.length;i++) hist[gray[i]]++;
+  var total=gray.length, lo=0, hi=255, acc=0;
+  for(i=0;i<256;i++){ acc+=hist[i]; if(acc>=total*0.02){ lo=i; break; } }
+  acc=0; for(i=255;i>=0;i--){ acc+=hist[i]; if(acc>=total*0.02){ hi=i; break; } }
+  if(hi<=lo){ lo=0; hi=255; }
+  var lut=new Uint8Array(256);
+  for(i=0;i<256;i++){ var v=Math.round((i-lo)*255/(hi-lo)); lut[i]=v<0?0:(v>255?255:v); }
+  var g2=new Uint8ClampedArray(gray.length);
+  for(i=0;i<gray.length;i++) g2[i]=lut[gray[i]];
+  var win=Math.max(15,(Math.min(W,H)/22)|0); if(win%2===0) win++;
+  var mask=adaptiveThreshold(g2,W,H,win,10);
+  var black=0; for(i=0;i<mask.length;i++) if(mask[i]===0) black++;
+  if(black/mask.length>0.5){                 // dark/inverted scan -> global Otsu fallback
+    var thr=otsu(g2), m2=new Uint8Array(gray.length);
+    for(i=0;i<gray.length;i++) m2[i]=g2[i]<thr?0:255;
+    return m2;
+  }
+  return mask;
+}
+function adaptiveThreshold(gray,W,H,win,C){
+  var IW=W+1;
+  var integral=new Float64Array(IW*(H+1));
+  for(var y=0;y<H;y++){
+    var rs=0, rowBase=(y+1)*IW, prevBase=y*IW;
+    for(var x=0;x<W;x++){ rs+=gray[y*W+x]; integral[rowBase+x+1]=integral[prevBase+x+1]+rs; }
+  }
+  var half=win>>1, out=new Uint8Array(W*H);
+  for(var yy=0;yy<H;yy++){
+    var y1=yy-half<0?0:yy-half, y2=yy+half>=H?H-1:yy+half;
+    for(var xx=0;xx<W;xx++){
+      var x1=xx-half<0?0:xx-half, x2=xx+half>=W?W-1:xx+half;
+      var count=(x2-x1+1)*(y2-y1+1);
+      var sum=integral[(y2+1)*IW+(x2+1)]-integral[(y1)*IW+(x2+1)]-integral[(y2+1)*IW+(x1)]+integral[(y1)*IW+(x1)];
+      out[yy*W+xx]=(gray[yy*W+xx] < (sum/count) - C)?0:255;
+    }
+  }
+  return out;
+}
 // draw source canvas onto Letter-portrait bitonal canvas
 function normalizeToLetter(srcCanvas,manualThresh,deskew){
   var work=srcCanvas;
@@ -763,14 +803,19 @@ function normalizeToLetter(srcCanvas,manualThresh,deskew){
   var x=Math.round((LTR_W-w)/2), y=Math.round((LTR_H-h)/2);
   octx.imageSmoothingEnabled=true; octx.imageSmoothingQuality="high";
   octx.drawImage(work,x,y,w,h);
-  // threshold whole letter canvas
+  // clean up to crisp black-and-white (auto-levels + adaptive threshold; best for DHL OCR)
   var img=octx.getImageData(0,0,LTR_W,LTR_H);
   var gray=toGray(img);
-  var thr=(manualThresh>=0&&manualThresh<=255)?manualThresh:otsu(gray);
+  var mask;
+  if(manualThresh>=0&&manualThresh<=255){
+    mask=new Uint8Array(gray.length);
+    for(var k=0;k<gray.length;k++) mask[k]=gray[k]<manualThresh?0:255;
+  }else{
+    mask=cleanBitonal(gray,LTR_W,LTR_H);
+  }
   var d=img.data;
   for(var i=0,j=0;i<d.length;i+=4,j++){
-    var v=gray[j]<thr?0:255;
-    d[i]=d[i+1]=d[i+2]=v; d[i+3]=255;
+    d[i]=d[i+1]=d[i+2]=mask[j]; d[i+3]=255;
   }
   octx.putImageData(img,0,0);
   return out;
@@ -910,7 +955,7 @@ function buildDocsFromPages(){
       barcode:g.barcode, orphan:!!g.orphan,
       pageOrder:g.pageOrder.slice(),
       detection:det, port:port,
-      customer:"", sid:"",
+      customer:"", sid:"", pieces:"", weight:"",
       manual:false
     };
   });
@@ -945,6 +990,25 @@ function extractCustomer(text){
   var m=text.match(/\b([A-Z][A-Za-z&.\- ]{2,}(?:INC|LTD|LLC|CORP|CO|OPERATIONS)\b)/);
   return m? m[1].trim().replace(/[^A-Za-z0-9&.\- ]/g,"").trim() : "";
 }
+// Total (gross) weight, e.g. "G = 988 LB".
+function extractWeight(text){
+  if(!text) return "";
+  var m=text.match(/G\w{0,2}\s*[=:~-]?\s*([\d,]{2,7})\s*(?:LB|LBS)\b/i);
+  if(m) return m[1].replace(/,/g,"");
+  var all=text.match(/([\d,]{2,7})\s*(?:LB|LBS)\b/ig);
+  if(all&&all.length){
+    var nums=all.map(function(x){return parseInt(x.replace(/[^\d]/g,""),10);}).filter(function(n){return !isNaN(n)&&n>0;});
+    if(nums.length) return String(Math.max.apply(null,nums));
+  }
+  return "";
+}
+// Piece count (excluding skid). Only auto-filled when clearly labelled; else the dispatcher types it.
+function extractPieces(text){
+  if(!text) return "";
+  var m=text.match(/([\d,]{1,6})\s*(?:pcs|pieces)\b/i);
+  if(m) return m[1].replace(/,/g,"");
+  return "";
+}
 // File name stem: Barcode - Customer - SA#(SID)
 function fileStem(d){
   var parts=[d.barcode||"UNKNOWN"];
@@ -968,6 +1032,8 @@ async function enrichDocsWithOcr(){
     if(text){
       if(!d.customer) d.customer=extractCustomer(text);
       if(!d.sid) d.sid=extractSid(text);
+      if(!d.weight) d.weight=extractWeight(text);
+      if(!d.pieces) d.pieces=extractPieces(text);
     }
   }
 }
@@ -1024,6 +1090,11 @@ function renderDocs(){
     var sidInput=el("input","sid"); sidInput.value=d.sid||""; sidInput.placeholder="SA# (SID)"; sidInput.title="SID / Shipping No — used in the file name. Correct if wrong.";
     sidInput.addEventListener("change",function(){ d.sid=sidInput.value.trim(); });
     head.appendChild(custInput); head.appendChild(sidInput);
+    var pcsInput=el("input","pcs"); pcsInput.value=d.pieces||""; pcsInput.placeholder="Pieces (no skid)"; pcsInput.title="Piece count excluding skid — for the CSV";
+    pcsInput.addEventListener("change",function(){ d.pieces=pcsInput.value.trim(); });
+    var wtInput=el("input","wt"); wtInput.value=d.weight||""; wtInput.placeholder="Weight"; wtInput.title="Total (gross) weight — for the CSV";
+    wtInput.addEventListener("change",function(){ d.weight=wtInput.value.trim(); });
+    head.appendChild(pcsInput); head.appendChild(wtInput);
     head.appendChild(el("div","spacer"));
     var ctrl=el("div","dctrl");
     if(i>0){ var mu=el("button","btn btn-ghost btn-xs",null,""); mu.textContent="⬆ Merge into #"+i; mu.onclick=function(){mergeUp(i);}; ctrl.appendChild(mu); }
@@ -1289,7 +1360,7 @@ async function runBuild(){
   }
   $("#genBtn").disabled=true;
   setStep(3); progress(true);
-  var thresh=parseInt($("#threshRange").value,10); if(thresh>255) thresh=-1;
+  var thresh=-1; // always automatic: adaptive clean-up tuned for DHL's OCR
   var deskew=$("#deskewToggle").checked;
   var coversheet=$("#coverToggle").checked;
   var toList=$("#toInput").value.split(",").map(function(s){return s.trim();}).filter(Boolean);
@@ -1450,6 +1521,13 @@ $("#dlAllBtn").addEventListener("click",async function(){
   toast("ZIP downloaded — open each .eml and send.");
 });
 $("#csvBtn").addEventListener("click",function(){ downloadBlob(new Blob([currentCsv()],{type:"text/csv"}),"run_summary.csv"); });
+$("#totalsBtn").addEventListener("click",function(){ downloadBlob(new Blob([totalsCsv()],{type:"text/csv"}),"shipment_totals.csv"); });
+function totalsCsv(){
+  var rows=[["Barcode/PAPS","Customer","SA# (SID)","Pieces (excl. skid)","Total weight"]];
+  var src=(state.results&&state.results.length)? state.results.map(function(r){return r.doc;}) : state.docs;
+  (src||[]).forEach(function(d){ rows.push([d.barcode||"UNKNOWN", d.customer||"", d.sid||"", d.pieces||"", d.weight||""]); });
+  return buildCsv(rows);
+}
 $("#printBtn").addEventListener("click",function(){ window.print(); });
 function currentCsv(){
   var rows=[["#","Barcode/PAPS","Pages","PageCount","Port","DetectedVia","ImageSpec","SizeBytes","EmailGenerated","Sent","Flags"]];
@@ -1461,11 +1539,7 @@ function currentCsv(){
   return buildCsv(rows);
 }
 
-/* threshold label */
-$("#threshRange").addEventListener("input",function(){
-  var v=+$("#threshRange").value;
-  $("#threshVal").textContent = v>255? "auto (Otsu)" : ("manual "+v);
-});
+/* B/W threshold is now fully automatic (adaptive) */
 
 /* library load watchdog */
 var libTries=0;
