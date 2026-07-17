@@ -139,6 +139,7 @@ main{padding:26px 0 72px}
 .pg .obadge{position:absolute;top:5px;left:5px;font-size:9px;font-weight:800;padding:2px 6px;border-radius:6px;background:var(--gold);color:#3A2E00}
 .pg .obadge.ocr{background:var(--verify-bg);color:var(--verify)}
 .pg .obadge.none{background:var(--miss-bg);color:var(--miss)}
+.pg .qbadge{position:absolute;top:5px;right:5px;font-size:9px;font-weight:800;padding:2px 6px;border-radius:6px;background:var(--verify-bg);color:var(--verify)}
 
 .flags{padding:0 16px 14px}
 .flag{font-size:12px;color:var(--body);background:#FBF1DA;border:1px solid #F1E2B8;border-left:3px solid var(--verify);border-radius:8px;padding:8px 11px;margin-top:8px}
@@ -359,6 +360,7 @@ Grimsby, ON.</textarea>
       <button class="btn btn-ghost" id="csvBtn">Export summary CSV</button>
       <button class="btn btn-ghost" id="totalsBtn">Export pieces &amp; weight CSV</button>
       <button class="btn btn-ghost" id="printBtn">Print summary</button>
+      <button class="btn btn-primary" id="newTrailerBtn">+ Start another trailer</button>
     </div>
     <div class="tblwrap">
       <table id="sumTable">
@@ -639,7 +641,20 @@ function updatePortHint(){
   if(h) h.innerHTML = (ace?("ACE "+ace+" · "):"")+"used in every subject &amp; email body.";
 }
 
-$("#resetBtn").addEventListener("click",function(){ location.reload(); });
+function resetForNewTrailer(){
+  state.pdfData=null; state.fileName=null; state.pages=[]; state.docs=[]; state.results=null; state.built=false;
+  try{ $("#fileInput").value=""; }catch(e){}
+  $("#fileChips").innerHTML="";
+  $("#trailerBar").classList.remove("show");
+  $("#docsSection").classList.remove("show"); $("#verifySection").classList.remove("show");
+  $("#docs").innerHTML=""; $("#notes").innerHTML=""; $("#sumBody").innerHTML=""; $("#stats").innerHTML=""; $("#vnotes").innerHTML="";
+  $("#scanBtn").disabled=true; $("#genBtn").disabled=false;
+  clearErr(); progress(false); setStep(1); hideZoom();
+  $("#dropMeta").textContent="";
+  window.scrollTo({top:0,behavior:"smooth"});
+  toast("Ready for the next trailer — drop its PDF. Your settings are kept.");
+}
+$("#resetBtn").addEventListener("click",resetForNewTrailer);
 
 /* ---------- ZXing decode ---------- */
 function makeReader(){
@@ -855,6 +870,40 @@ function deskewCanvas(src){
   octx.drawImage(src,-src.width/2,-src.height/2);
   return out;
 }
+// Estimate page skew (degrees) via projection-profile variance.
+function estimateSkew(canvas){
+  var small=downscale(canvas,600);
+  var sctx=small.getContext("2d",{willReadFrequently:true});
+  var g=toGray(sctx.getImageData(0,0,small.width,small.height));
+  var thr=otsu(g), W=small.width, H=small.height;
+  var bin=new Uint8Array(W*H); for(var i=0;i<g.length;i++) bin[i]=g[i]<thr?1:0;
+  function scoreAt(angle){
+    var tan=Math.tan(angle*Math.PI/180), rows=new Float64Array(H);
+    for(var y=0;y<H;y++){ var cnt=0; for(var x=0;x<W;x+=2){ var yy=y+((x-W/2)*tan|0); if(yy>=0&&yy<H&&bin[yy*W+x]) cnt++; } rows[y]=cnt; }
+    var m=0,k; for(k=0;k<H;k++)m+=rows[k]; m/=H; var vv=0; for(k=0;k<H;k++){var dd=rows[k]-m; vv+=dd*dd;} return vv;
+  }
+  var best=0,bestA=0; for(var a=-4;a<=4;a+=1){ var sc=scoreAt(a); if(sc>best){best=sc;bestA=a;} }
+  return bestA;
+}
+// Flag scans that may not read well for DHL: faint/washed, very dark, or crooked.
+function assessQuality(canvas){
+  var small=downscale(canvas,900);
+  var ctx=small.getContext("2d",{willReadFrequently:true});
+  var g=toGray(ctx.getImageData(0,0,small.width,small.height));
+  var n=g.length,i,sum=0; for(i=0;i<n;i++) sum+=g[i];
+  var mean=sum/n, vs=0; for(i=0;i<n;i++){var dd=g[i]-mean; vs+=dd*dd;}
+  var std=Math.sqrt(vs/n);
+  var thr=otsu(g), ink=0; for(i=0;i<n;i++) if(g[i]<thr) ink++;
+  var skew=estimateSkew(canvas);
+  var dark = mean<110;
+  var faint = (std<40) && !dark;
+  var skewBad = Math.abs(skew)>=3.0;
+  var msgs=[];
+  if(faint) msgs.push("faint / washed out");
+  if(dark) msgs.push("very dark");
+  if(skewBad) msgs.push("crooked (~"+skew.toFixed(0)+" deg)");
+  return {mean:mean,std:std,inkRatio:ink/n,skew:skew,faint:faint,dark:dark,skewBad:skewBad,warn:(msgs.length>0),msgs:msgs};
+}
 
 /* ---------- main scan pipeline ---------- */
 var ocrWorker=null;
@@ -918,6 +967,7 @@ async function runScan(){
       }
       rec.thumb=downscale(hires,160).toDataURL("image/jpeg",0.72);
       rec.zoom=downscale(hires,1400).toDataURL("image/jpeg",0.82);   // for hover preview
+      rec.quality=assessQuality(canvas);
       state.pages.push(rec);
     }
     setProg("Splitting shipments…",total,total,"");
@@ -1068,8 +1118,13 @@ function renderDocs(){
       notes.appendChild(el("div","note warn","<span class='nb warn'>Give this one a glance</span>Shipment <b>"+(i+1)+"</b> (pages "+pageRangeLabel(d.pageOrder)+"): the number <b>"+d.barcode+"</b> was read from the page text, not scanned from the barcode. Check it matches what's printed."));
     }
   });
+  var qbad=[];
+  state.docs.forEach(function(d,di){ d.pageOrder.forEach(function(pi){ var q=state.pages[pi].quality; if(q&&q.warn) qbad.push("shipment "+(di+1)+" p."+(pi+1)+" ("+q.msgs.join(", ")+")"); }); });
+  if(qbad.length){
+    notes.appendChild(el("div","note warn","<span class='nb warn'>Scan quality</span>These page(s) may not read well for DHL &mdash; hover them to check, and re-scan with better light if needed: <b>"+qbad.join("; ")+"</b>."));
+  }
   if(!notes.children.length){
-    notes.appendChild(el("div","note","<span class='nb ok'>Looks clean</span>Every shipment has a scanned barcode. Review the page groupings, then build the emails."));
+    notes.appendChild(el("div","note","<span class='nb ok'>Looks clean</span>Every shipment has a scanned barcode and the scans look good. Review the groupings, then build the emails."));
   }
 
   state.docs.forEach(function(d,i){
@@ -1112,6 +1167,9 @@ function renderDocs(){
       var obLabel = pg.method==="barcode"?"BARCODE":(pg.method==="ocr"?"OCR":(pg.method==="text"?"TEXT":"NO CODE"));
       if(pg.barcode||pidx===0){
         box.appendChild(el("div","obadge "+ob,obLabel));
+      }
+      if(pg.quality&&pg.quality.warn){
+        box.appendChild(el("div","qbadge", pg.quality.faint?"FAINT":(pg.quality.dark?"DARK":(pg.quality.skewBad?"CROOKED":"CHECK"))));
       }
       var img=el("img","thumb"); img.src=pg.thumb; img.alt="page "+(pi+1);
       (function(zsrc){
@@ -1488,6 +1546,8 @@ function rowFlags(r){
   if(r.doc.detection==="manual") f.push({bad:false,short:"Manual",msg:"Barcode entered by hand"});
   if(r.error) f.push({bad:true,short:"Build error",msg:r.error});
   if(r.bytes>MAX_BYTES) f.push({bad:true,short:"Too big",msg:"Attachment over 5 MB"});
+  var lowq=(r.doc.pageOrder||[]).some(function(pi){var q=state.pages[pi]&&state.pages[pi].quality; return q&&q.warn;});
+  if(lowq) f.push({bad:false,short:"Scan quality",msg:"A page looks faint/dark/crooked — check it in the preview"});
   return f;
 }
 function openMailto(r){
@@ -1533,6 +1593,7 @@ function totalsCsv(){
   return buildCsv(rows);
 }
 $("#printBtn").addEventListener("click",function(){ window.print(); });
+$("#newTrailerBtn").addEventListener("click",resetForNewTrailer);
 function currentCsv(){
   var rows=[["#","Barcode/PAPS","Pages","PageCount","Port","DetectedVia","ImageSpec","SizeBytes","EmailGenerated","Sent","Flags"]];
   (state.results||[]).forEach(function(r,i){
